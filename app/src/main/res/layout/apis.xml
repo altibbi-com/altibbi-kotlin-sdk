@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="false"
+    tools:context = ".ApisExampleActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity"
+        tools:layout_editor_absoluteX="1dp"
+        tools:layout_editor_absoluteY="1dp">
+
+
+        <Button
+            android:id="@+id/btn1click"
+            android:layout_width="248dp"
+            android:layout_height="61dp"
+            android:onClick="btn1click"
+            android:text="phr list"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.462"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.053" />
+
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="248dp"
+            android:layout_height="61dp"
+            android:layout_marginTop="24dp"
+            android:onClick="btn2click"
+            android:text="user Info"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.497"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btn1click" />
+
+        <Button
+            android:id="@+id/button3"
+            android:layout_width="248dp"
+            android:layout_height="61dp"
+            android:layout_marginTop="32dp"
+            android:onClick="btn3click"
+            android:text="get consultation"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.498"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button2" />
+
+        <Button
+            android:id="@+id/button4"
+            android:layout_width="248dp"
+            android:layout_height="61dp"
+            android:layout_marginTop="28dp"
+            android:onClick="btn4click"
+            android:text="update use info"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button3" />
+
+        <Button
+            android:id="@+id/button5"
+            android:layout_width="248dp"
+            android:layout_height="61dp"
+            android:layout_marginTop="28dp"
+            android:onClick="btn5click"
+            android:text="get consultation details"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button4" />
+
+        <Button
+            android:id="@+id/button6"
+            android:layout_width="248dp"
+            android:layout_height="61dp"
+            android:layout_marginTop="28dp"
+            android:onClick="btn6click"
+            android:text="create consultation"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button5" />
+
+        <Button
+            android:id="@+id/button7"
+            android:layout_width="248dp"
+            android:layout_height="61dp"
+            android:layout_marginTop="28dp"
+            android:onClick="btn7click"
+            android:text="cancel consultation"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button6" />
+
+        <Button
+            android:id="@+id/button8"
+            android:layout_width="248dp"
+            android:layout_height="61dp"
+            android:layout_marginTop="28dp"
+            android:onClick="btn8click"
+            android:text="delete consultation"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button7" />
+
+<!--
+        <Button
+            android:id="@+id/button9"
+            android:layout_width="248dp"
+            android:layout_height="61dp"
+            android:layout_marginTop="28dp"
+            android:onClick="btn9click"
+            android:text="get media"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button8" />
+-->
+
+<!--
+        <Button
+            android:id="@+id/button10"
+            android:layout_width="248dp"
+            android:layout_height="61dp"
+            android:layout_marginTop="28dp"
+            android:onClick="btn10click"
+            android:text="upload usr Image"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button9" />
+-->
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

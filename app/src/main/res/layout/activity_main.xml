@@ -1,0 +1,62 @@
+<?xml version = "1.0" encoding = "utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
+
+    <TextView
+            android:id="@+id/textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:text="@string/sdk_login"
+            android:textSize="35sp" />
+
+    <EditText
+            android:id="@+id/sdk_token_text"
+            android:layout_width="353dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="31dp"
+            android:layout_marginTop="173dp"
+            android:layout_marginEnd="27dp"
+            android:focusable="true"
+            android:hint="@string/bearer_token"
+            android:textColorHighlight="#000"
+            android:textColorHint="#000"
+            android:text="LwByeugswCIu39IOmnZs7RgUOcIV1hR5"
+            android:autofillHints="@string/bearer_token"
+            android:inputType="text" />
+
+
+    <EditText
+            android:id="@+id/sdk_api_text"
+            android:layout_width="352dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/sdk_token_text"
+            android:layout_alignEnd="@+id/sdk_token_text"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="29dp"
+            android:layout_marginTop="11dp"
+            android:layout_marginEnd="2dp"
+            android:text="https://insurance.altibb.com"
+            android:ems="10"
+            android:hint="@string/api_link"
+            android:inputType="text"
+            android:textColorHint="#000"
+            android:autofillHints="@string/api_link" />
+
+    <Button
+            android:id="@+id/sdk_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="-83dp"
+            android:layout_marginBottom="368dp"
+            android:layout_toStartOf="@+id/textview"
+            android:text="@string/sdk_login" />
+
+</RelativeLayout>
