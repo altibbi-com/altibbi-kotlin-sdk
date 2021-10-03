@@ -2,7 +2,9 @@ package com.altibbi.cdsSdk;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+
 import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -13,6 +15,10 @@ import java.util.ArrayList;
 public class AltibbiCDS {
 
     private static AltibbiCDS altibbiCDS;
+
+     /**
+     Prepare the class and get instance
+     */
     public static AltibbiCDS getInstance() {
         if (altibbiCDS == null) {
             altibbiCDS = new AltibbiCDS();
@@ -25,6 +31,9 @@ public class AltibbiCDS {
     String authToken;
     String apiServer;
 
+     /**
+     add the needed payload to the instance
+     */
     public void init(Context context) {
         this.context = context;
         altibbiCDS = this;
@@ -35,28 +44,33 @@ public class AltibbiCDS {
             apiServer = sharedPreferences.getString("API_LINK", "");
         }
     }
-
+    /**
+     get the url and the authentication token from storage
+     */
     public void loginUser(String authToken, String apiServer) {
         SharedPreferences sharedPreferences = this.context.getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
+        // Get authentication from storage
         editor.putString("TOKEN", authToken);
+        // Get Link from storage
         editor.putString("API_LINK", apiServer);
         editor.apply();
         this.authToken = sharedPreferences.getString("TOKEN", "");
         this.apiServer = sharedPreferences.getString("API_LINK", "");
     }
 
-    public void triggerNetRequest(String api,String method, NetResult netResult) {
+    /**API request without a body*/
+    public void triggerNetRequest(String api, String method, NetResult netResult) {
         try {
             new Thread(() -> {
                 try {
-                    URL urlConn = new URL(apiServer + api);
-                    HttpURLConnection con = (HttpURLConnection) urlConn.openConnection();
+                    URL urlConn = new URL(apiServer + api); //prepare the URL
+                    HttpURLConnection con = (HttpURLConnection) urlConn.openConnection();//prepare the connection
                     con.setRequestMethod(method);
                     con.setRequestProperty("Authorization", "Bearer " + authToken);
-                    int responseCode = con.getResponseCode();
-                    String responseMessage = con.getResponseMessage();
-                    if (responseCode == HttpURLConnection.HTTP_OK) { // success
+                    int responseCode = con.getResponseCode(); //send the request and get response code
+                    String responseMessage = con.getResponseMessage();// response message
+                    if (responseCode == HttpURLConnection.HTTP_OK) { // on success
                         BufferedReader in = new BufferedReader(new InputStreamReader(
                                 con.getInputStream()));
                         String inputLine;
@@ -69,8 +83,7 @@ public class AltibbiCDS {
                     } else {
                         netResult.onFailure("error" + responseMessage);
                     }
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }).start();
@@ -81,23 +94,27 @@ public class AltibbiCDS {
         }
     }
 
-    public void triggerNetRequestWithBody(String api,String method,JSONObject data, NetResult netResult) {
+    /**API request with a body*/
+    public void triggerNetRequestWithBody(String api, String method, JSONObject data, NetResult netResult) {
         try {
             new Thread(() -> {
                 try {
-                    URL urlConn = new URL(apiServer + api);
-                    HttpURLConnection con = (HttpURLConnection) urlConn.openConnection();
+                    URL urlConn = new URL(apiServer + api); //prepare the URL
+                    HttpURLConnection con = (HttpURLConnection) urlConn.openConnection();//prepare the connection
                     con.setRequestMethod(method);
                     con.setDoOutput(true);
                     con.setRequestProperty("Authorization", "Bearer " + authToken);
                     con.setRequestProperty("Content-Type", "application/json");
-                    OutputStreamWriter osw = new OutputStreamWriter(con.getOutputStream());
+                    OutputStreamWriter osw = new OutputStreamWriter(con.getOutputStream());//prepare the body of the request
                     osw.write(String.valueOf(data));
                     osw.flush();
                     osw.close();
-                    int responseCode = con.getResponseCode();
-                    String responseMessage = con.getResponseMessage();
-                    if (responseCode == HttpURLConnection.HTTP_OK) { // success
+                    int responseCode = con.getResponseCode(); //send the request and get response code
+                    System.out.println(responseCode);
+                    String responseMessage = con.getResponseMessage();// response message
+                    if (method=="DELETE"&&responseCode==204){//on delete success
+                        netResult.onSuccess("consultation deleted");
+                    }else if (responseCode == HttpURLConnection.HTTP_OK) { // on success
                         BufferedReader in = new BufferedReader(new InputStreamReader(
                                 con.getInputStream()));
                         String inputLine;
@@ -111,10 +128,9 @@ public class AltibbiCDS {
                         // print result
                         netResult.onSuccess(response.toString());
                     } else {
-                        netResult.onFailure("error" + responseMessage);
+                        netResult.onFailure("error123" + responseMessage);
                     }
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }).start();
@@ -123,7 +139,6 @@ public class AltibbiCDS {
             netResult.onFailure(ex.getMessage());
         }
     }
-
 
 
     public void getConsultationsList(NetResult netResult) {
@@ -135,24 +150,24 @@ public class AltibbiCDS {
     }
 
     public void getUserInfo(String userID, NetResult netResult) {
-        triggerNetRequest("/v1/users/"+userID, "GET", netResult);
+        triggerNetRequest("/v1/users/" + userID, "GET", netResult);
     }
 
-    public void getConsultationDetails(String consultationID, NetResult netResult)  {
-        triggerNetRequest("/v1/consultations/"+consultationID, "GET", netResult);
+    public void getConsultationDetails(String consultationID, NetResult netResult) {
+        triggerNetRequest("/v1/consultations/" + consultationID, "GET", netResult);
     }
 
-    public void getMedia(NetResult netResult)  {
+    public void getMedia(NetResult netResult) {
         triggerNetRequest("/v1/media/", "GET", netResult);
     }
 
-    public void UpdatePhrInfo(String userID,String name, String gender, NetResult netResult) {
+    public void UpdatePhrInfo(String userID, String name, String gender, NetResult netResult) {
         try {
             JSONObject json = new JSONObject();
 
-            json.put("id",userID);
-            json.put("name",name);
-            json.put("gender",gender);
+            json.put("id", userID);
+            json.put("name", name);
+            json.put("gender", gender);
             triggerNetRequestWithBody("/v1/users/" + userID, "PUT", json, netResult);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -164,19 +179,19 @@ public class AltibbiCDS {
         try {
             JSONObject json = new JSONObject();
 
-            json.put("consultation_id",consultationId);
-            triggerNetRequestWithBody("/v1/consultations/" + consultationId+"/cancel", "POST", json, netResult);
+            json.put("consultation_id", consultationId);
+            triggerNetRequestWithBody("/v1/consultations/" + consultationId + "/cancel", "POST", json, netResult);
         } catch (Exception ex) {
             ex.printStackTrace();
             netResult.onFailure(ex.getMessage());
         }
     }
-
+    //consultation should be closed (status:"closed") to be deleted
     public void deleteConsultation(String consultationId, NetResult netResult) {
         try {
             JSONObject json = new JSONObject();
 
-            json.put("consultation_id",consultationId);
+            json.put("consultation_id", consultationId);
             triggerNetRequestWithBody("/v1/consultations/" + consultationId, "DELETE", json, netResult);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -184,12 +199,13 @@ public class AltibbiCDS {
         }
     }
 
-    public void createConsultation(String userID,String question,String medium, NetResult netResult) {
+    //question should be at least 10 chars and there is no consultation open
+    public void createConsultation(String userID, String question, String medium, NetResult netResult) {
         try {
             JSONObject json = new JSONObject();
-            json.put("user_id",userID);
-            json.put("question",question);
-            json.put("medium",medium);
+            json.put("user_id", userID);
+            json.put("question", question);
+            json.put("medium", medium);
             triggerNetRequestWithBody("/v1/consultations", "POST", json, netResult);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -197,13 +213,14 @@ public class AltibbiCDS {
         }
     }
 
+    //question should be at least 10 chars and there is no consultation open
     public void createConsultation(String userID, String question, String medium, ArrayList<String> mediaIds, NetResult netResult) {
         try {
             JSONObject json = new JSONObject();
-            json.put("user_id",userID);
-            json.put("question",question);
-            json.put("medium",medium);
-            json.put("media_ids",mediaIds);
+            json.put("user_id", userID);
+            json.put("question", question);
+            json.put("medium", medium);
+            json.put("media_ids", mediaIds);
             triggerNetRequestWithBody("/v1/consultations", "POST", json, netResult);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -211,14 +228,15 @@ public class AltibbiCDS {
         }
     }
 
-    public void createConsultation(String userID, String question, String medium, ArrayList<String> mediaIds,String parentId, NetResult netResult) {
+    //question should be at least 10 chars and there is no consultation open
+    public void createConsultation(String userID, String question, String medium, ArrayList<String> mediaIds, String parentId, NetResult netResult) {
         try {
             JSONObject json = new JSONObject();
-            json.put("user_id",userID);
-            json.put("question",question);
-            json.put("medium",medium);
-            json.put("media_ids",mediaIds);
-            json.put("parent_consultation_id",parentId);
+            json.put("user_id", userID);
+            json.put("question", question);
+            json.put("medium", medium);
+            json.put("media_ids", mediaIds);
+            json.put("parent_consultation_id", parentId);
             triggerNetRequestWithBody("/v1/consultations", "POST", json, netResult);
         } catch (Exception ex) {
             ex.printStackTrace();
