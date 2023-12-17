@@ -1,6 +1,3 @@
 <resources>
-    <string name="app_name">Sample SDK</string>
-    <string name="bearer_token">Bearer token</string>
-    <string name="api_link">API Link</string>
-    <string name="sdk_login">login</string>
+    <string name="app_name">kotlinSDK</string>
 </resources>

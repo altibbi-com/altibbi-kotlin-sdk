@@ -1,18 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.altibbi.cdsSdk">
-    <uses-permission android:name="android.permission.INTERNET" />
+    xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AndroidSDK10">
+        android:theme="@style/Theme.KotlinSDK"
+        tools:targetApi="31">
         <activity
-            android:name="com.altibbi.cdsSdk.MainActivity"
+            android:name=".ImagePicker"
+            android:exported="false" />
+        <activity
+            android:name=".UserPage"
+            android:exported="false" />
+        <activity
+            android:name=".ConsultationPage"
+            android:exported="false" />
+        <activity
+            android:name=".Consultations_page"
+            android:exported="false" />
+        <activity
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,7 +40,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.altibbi.cdsSdk.ApisExampleActivity" ></activity>
     </application>
 
 </manifest>
