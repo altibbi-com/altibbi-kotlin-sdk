@@ -1,15 +1,8 @@
 package com.example.altibbi
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import com.google.gson.annotations.SerializedName
 
-class ChatConfig : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_chat_config)
-    }
-
+class ChatConfig {
     data class Data(
         @SerializedName("id") val id: Int?,
         @SerializedName("consultation_id") val consultationId: Int?,

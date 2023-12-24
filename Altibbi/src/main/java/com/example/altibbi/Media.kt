@@ -1,21 +1,6 @@
 package com.example.altibbi
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import java.io.BufferedReader
-import java.io.DataOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStreamReader
-import java.net.HttpURLConnection
-import java.net.URL
-
-class Media : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_media)
-    }
-
+class Media {
     data class Data(
         val id: String?,
         val type: String?,

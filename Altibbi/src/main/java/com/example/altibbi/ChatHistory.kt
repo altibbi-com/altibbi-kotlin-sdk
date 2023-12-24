@@ -1,21 +1,19 @@
 package com.example.altibbi
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import com.google.gson.annotations.SerializedName
 
-class ChatHistory : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_chat_history)
-    }
-
-    data class Data(
-        @SerializedName("id") val id: String?,
+class ChatHistory {
+    data class MessageData(
+        val id: String?,
         @SerializedName("message") val message: String?,
         @SerializedName("sent_at") val sentAt: String?,
         @SerializedName("chat_user_id") val chatUserId: String?
     )
-
-
+    data class Data(
+        val id: String?,
+        @SerializedName("consultation_id") val consultationId: Int?,
+        val data : List<MessageData>,
+        @SerializedName("created_at") val createdIt: String?,
+        @SerializedName("updated_at") val updateAt: String?,
+    )
 }

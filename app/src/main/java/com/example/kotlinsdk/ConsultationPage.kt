@@ -2,7 +2,6 @@ package com.example.kotlinsdk
 
 import android.Manifest
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -15,14 +14,14 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
+import com.example.altibbi.ApiService
 import com.example.altibbi.Consultation
 import java.io.File
+import com.example.altibbi.TBISocket
 
 
 class ConsultationPage : AppCompatActivity() {
@@ -32,7 +31,7 @@ class ConsultationPage : AppCompatActivity() {
         setContentView(R.layout.activity_consultation_page)
         val spinner = findViewById<Spinner>(R.id.spinner1)
 
-        val values = listOf("chat", "call", "video")
+        val values = listOf("chat", "gsm", "video", "voip")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, values)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
@@ -41,51 +40,51 @@ class ConsultationPage : AppCompatActivity() {
         ) { result ->
             handleGalleryResult(result.resultCode, result.data)
         }
-        val consultation = Consultation()
+        val tbiSocket = TBISocket()
 
         val createConsultationButton = findViewById<Button>(R.id.button2);
 
         val uploadImageButton = findViewById<Button>(R.id.button13);
         uploadImageButton.setOnClickListener{
-            showImagePickerFun()
+            showImagePicker()
         }
 
         createConsultationButton.setOnClickListener {
-            createConsultationFun(consultation)
+            createConsultationFun(tbiSocket)
         }
 
         val cancelButton = findViewById<Button>(R.id.button5);
         cancelButton.setOnClickListener{
-            cancelConsultationFun(consultation)
+            cancelConsultationFun()
         }
 
         val getConsultationByIdButton = findViewById<Button>(R.id.button7);
         getConsultationByIdButton.setOnClickListener{
-            getConsultationByIdFun(consultation)
+            getConsultation()
         }
 
         val getConsultationListButton = findViewById<Button>(R.id.button8);
         getConsultationListButton.setOnClickListener{
-            getConsultationListFun(consultation)
+            getConsultationListFun()
         }
 
         val deleteConsultationByIdButton = findViewById<Button>(R.id.button9);
         deleteConsultationByIdButton.setOnClickListener{
-            deleteConsultationFun(consultation)
+            deleteConsultationFun()
         }
 
         val getPrescriptionButton = findViewById<Button>(R.id.button14);
         getPrescriptionButton.setOnClickListener{
-            getPrescriptionFun(consultation, applicationContext)
+            getPrescriptionFun(applicationContext)
         }
     }
 
-    private fun getPrescriptionFun(consultation: Consultation, context: Context) {
+    private fun getPrescriptionFun( context: Context) {
         println("context is -> ${context.packageName}")
         val consultationToGet: EditText = findViewById(R.id.textInputEditText15)
         val id: String = consultationToGet.text.toString()
 
-        consultation.getPrescription(id, context, object : Consultation.DownloadPrescriptionCallback {
+        ApiService.getPrescription(id, context, object : Consultation.DownloadPrescriptionCallback {
             override fun onSuccess(filePath: String) {
                 println("filePath in onSuccess -> $filePath")
             }
@@ -113,7 +112,6 @@ class ConsultationPage : AppCompatActivity() {
     private fun handleGalleryResult(resultCode: Int, data: Intent?) {
         val MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 123
         Log.d("ImagePicker", "handleGalleryResult called")
-        println("in handleGalleryResult")
         if (resultCode == Activity.RESULT_OK) {
             val imageUri: Uri? = data?.data
             println("imageUri is -> $imageUri")
@@ -123,14 +121,13 @@ class ConsultationPage : AppCompatActivity() {
 
                 if (imageFile != null && imageFile.exists()) {
                     println("imageFile is $imageFile")
-                    val consultation = Consultation()
 
                     if (ContextCompat.checkSelfPermission(
                             this,
                             Manifest.permission.READ_EXTERNAL_STORAGE
                         ) == PackageManager.PERMISSION_GRANTED
                     ){
-                        consultation.uploadMedia("https://tawuniya.altibb.com/v1/media" , imageFile, object :
+                        ApiService.uploadMedia(imageFile, object :
                             Consultation.UploadCallback {
                             override fun onSuccess(response: Consultation.UploadMediaResponse) {
                                 println("uploadMedia response is -> $response")
@@ -139,10 +136,8 @@ class ConsultationPage : AppCompatActivity() {
                                 }
                             }
 
-                            override fun onError(error: Consultation.ErrorResponse) {
-                                if(error is Consultation.ErrorResponse){
-                                    println("uploadMedia error all data is -> $error")
-                                }
+                            override fun onError(error: Any) {
+                                println("uploadMedia error Any is -> $error")
                             }
                         })
 
@@ -159,37 +154,37 @@ class ConsultationPage : AppCompatActivity() {
     }
 
 
-    private fun showImagePickerFun(){
+    private fun showImagePicker(){
         val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         galleryActivityResultLauncher?.launch(galleryIntent)
     }
 
-    private fun getConsultationListFun(consultation: Consultation) {
-        consultation.getConsultationList(object : Consultation.GetConsultationListCallBack{
-            override fun onSuccess(response: List<Consultation.ConsultationResponse>?) {
-                if(response is List<Consultation.ConsultationResponse>){
-                    println("getConsultationList all data is  -> $response")
-                }
+    private fun getConsultationListFun() {
+        ApiService.getConsultationList(object : Consultation.GetConsultationListCallBack{
+            override fun onSuccess(response: List<Consultation.ConsultationResponse>) {
+                println("getConsultationList all data is  -> $response")
+            }
+
+            override fun onError(error: Any) {
+                println("getConsultationList error -> $error")
             }
         })
     }
 
 
-    private fun getConsultationByIdFun(consultation: Consultation) {
+    private fun getConsultation() {
         val consultationToGet: EditText = findViewById(R.id.textInputEditText4)
         val id: String = consultationToGet.text.toString()
 
-        consultation.getConsultationById(id, object : Consultation.GetConsultationByIdCallBack{
+        ApiService.getConsultation(id, object : Consultation.GetConsultationByIdCallBack{
             override fun onSuccess(response: Consultation.GetConsultationByIdResponse) {
                 if(response is Consultation.GetConsultationByIdResponse){
                     println("GetConsultationByIdResponse all data is -> $response")
                 }
             }
 
-            override fun onError(error: Consultation.GetConsultationByIdNotFoundResponse) {
-                if(error is Consultation.GetConsultationByIdNotFoundResponse){
-                    println("error is in GetConsultationByIdNotFoundResponse -> $error")
-                }
+            override fun onError(error: Any) {
+                println("error is in GetConsultationByIdNotFoundResponse -> $error")
             }
 
             override fun onErrorObj(error: Consultation.ConsultationNotFound) {
@@ -202,11 +197,11 @@ class ConsultationPage : AppCompatActivity() {
     }
 
 
-    private fun cancelConsultationFun(consultation: Consultation) {
+    private fun cancelConsultationFun() {
         val consultationId: EditText = findViewById(R.id.textInputEditText3)
         val id: String = consultationId.text.toString()
 
-        consultation.cancelConsultation(
+        ApiService.cancelConsultation(
             id,
             object : Consultation.CancelConsultationCallBack{
                 override fun onSuccess(response: Consultation.CancelConsultationResponse){
@@ -215,12 +210,10 @@ class ConsultationPage : AppCompatActivity() {
                         println("Cancel Consultation Response all data is -> $response")
                     }
                 }
-                override fun onError(error: Consultation.ErrorResponse ) {
-                    println("Received Error in callback createConsultation: $error")
-                    if(error is Consultation.ErrorResponse){
-                        println("error all data is -> $error")
-                    }
+                override fun onError(error: Any ) {
+                    println("Received Error Any in callback cancelConsultationFun: $error")
                 }
+
                 override fun onErrorObj(error: Consultation.ConsultationNotFound){
                     if (error is Consultation.ConsultationNotFound){
                         println("error all data in onErrorObj is -> $error")
@@ -231,10 +224,8 @@ class ConsultationPage : AppCompatActivity() {
     }
 
 
-    private fun createConsultationFun(consultation: Consultation) {
-
+    private fun createConsultationFun(tbiSocket: TBISocket) {
         val spinner = findViewById<Spinner>(R.id.spinner1)
-
         val values = listOf("chat", "call", "video")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, values)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -244,42 +235,49 @@ class ConsultationPage : AppCompatActivity() {
         val parentConsId: EditText = findViewById(R.id.textInputEditText6)
         val parentConsultationId = parentConsId.text.toString().toIntOrNull()
 
-        val consultationData = Consultation.ConsultationData(
+        val consultationParams = Consultation.ConsultationData(
             question = textInputEditText.text.toString(),
             medium = (spinner.selectedItem as String),
             userID = 64,
-            mediaIDs = listOf("c8617c16-98ef-11ee-9bc6-9600009a97a9"),
+            mediaIDs = arrayOf("c8617c16-98ef-11ee-9bc6-9600009a97a9"),
             followUpId = parentConsultationId
         )
-        consultation.createConsultation(
-            consultationData,
+        ApiService.createConsultation(
+            consultationParams,
             object : Consultation.CreateConsultationCallback {
                 override fun onSuccess(response: Consultation.ConsultationResponse) {
                     println("Received response in callback createConsultation: $response")
                     if(response is Consultation.ConsultationResponse){
                         println("Received response in callback createConsultation all data is :${response}")
+
+                        val pusherData = TBISocket.PusherParams(
+                            pusherAppKey = response.pusherAppKey,
+                            pusherChannel = response.pusherChannel
+                        )
+                        tbiSocket.initiateSocket(pusherData, object : TBISocket.InitiateSocketCallBack{
+                            override fun onConnect(status: String) {
+                                println("onConnect status -> $status")
+                            }
+                        })
                     }
                 }
-                override fun onError(error: String) {
+                override fun onError(error: Any) {
                     println("Received Error in callback createConsultation: $error")
                 }
             }
         )
     }
 
-
-    private fun deleteConsultationFun(consultation: Consultation) {
+    private fun deleteConsultationFun() {
         val deleteConsId: EditText = findViewById(R.id.textInputEditText5)
         val id: String = deleteConsId.text.toString()
-        consultation.deleteConsultation(id, object : Consultation.DeleteConsultationCallBack{
-            override fun onSuccess(response: Any?) {
+        ApiService.deleteConsultation(id, object : Consultation.DeleteConsultationCallBack{
+            override fun onSuccess(response: Any) {
                 println("deleteConsultation onSuccess response is -> $response")
             }
 
-            override fun onError(error: Consultation.ConsultationNotFound) {
-                if(error is Consultation.ConsultationNotFound){
-                    println("deleteConsultation onError response is -> $error")
-                }
+            override fun onError(error: Any) {
+                println("deleteConsultation onError response is -> $error")
             }
         })
     }
