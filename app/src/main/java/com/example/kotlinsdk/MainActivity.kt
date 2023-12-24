@@ -4,6 +4,8 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
+import android.widget.EditText
+import com.example.altibbi.AltibbiService
 
 class MainActivity : AppCompatActivity() {
     override
@@ -21,6 +23,14 @@ class MainActivity : AppCompatActivity() {
         userPageButton.setOnClickListener {
             val intent = Intent(this, UserPage::class.java)
             startActivity(intent)
+        }
+
+        val initButton = findViewById<Button>(R.id.button15)
+
+        initButton.setOnClickListener{
+            val endPoint : EditText = findViewById(R.id.textInputEditText17)
+            val auth : EditText = findViewById(R.id.textInputEditText16)
+            AltibbiService.init(endPoint.text.toString(), auth.text.toString(),"en")
         }
     }
 }

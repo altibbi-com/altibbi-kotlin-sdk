@@ -1,15 +1,8 @@
 package com.example.altibbi
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import com.google.gson.annotations.SerializedName
 
-class VoipConfig : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_voip_config)
-    }
-
+class VoipConfig {
     data class Data(
         @SerializedName("id") val id: Int?,
         @SerializedName("consultation_id") val consultationId: Int?,
