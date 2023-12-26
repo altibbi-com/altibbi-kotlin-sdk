@@ -178,7 +178,7 @@ class ApiService {
 
         fun getUser(phrId: String, callback: User.GetUserCallback) {
             val params = null
-            NetworkRequest.ApiManager.getRequest("user/$phrId",
+            NetworkRequest.ApiManager.getRequest("users/$phrId",
                 params, false, object : NetworkRequest.ApiManager.ApiCallback<User.UserResponse, Any>{
                     override fun onSuccess(response: User.UserResponse) {
                         println("getUser success response $response")
