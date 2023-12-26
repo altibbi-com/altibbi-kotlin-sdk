@@ -179,6 +179,21 @@ class ConsultationPage : AppCompatActivity() {
         ApiService.getConsultation(id, object : Consultation.GetConsultationByIdCallBack{
             override fun onSuccess(response: Consultation.GetConsultationByIdResponse) {
                 if(response is Consultation.GetConsultationByIdResponse){
+                   if(response.videoConfig != null){
+                       val intent = Intent(applicationContext, Video::class.java)
+                       intent.putExtra("apiKey",response.videoConfig?.apiKey)
+                       intent.putExtra("callId",response.videoConfig?.callId)
+                       intent.putExtra("token",response.videoConfig?.token)
+                       startActivity(intent)
+                   }
+                    if(response.voipConfig != null){
+                        val intent = Intent(applicationContext, Video::class.java)
+                        intent.putExtra("apiKey",response.videoConfig?.apiKey)
+                        intent.putExtra("callId",response.videoConfig?.callId)
+                        intent.putExtra("token",response.videoConfig?.token)
+                        intent.putExtra("voip",true)
+                        startActivity(intent)
+                    }
                     println("GetConsultationByIdResponse all data is -> $response")
                 }
             }
@@ -237,9 +252,9 @@ class ConsultationPage : AppCompatActivity() {
 
         val consultationParams = Consultation.ConsultationData(
             question = textInputEditText.text.toString(),
-            medium = (spinner.selectedItem as String),
-            userID = 64,
-            mediaIDs = arrayOf("c8617c16-98ef-11ee-9bc6-9600009a97a9"),
+            medium = "video",
+            userID = 1,
+            mediaIDs = null,
             followUpId = parentConsultationId
         )
         ApiService.createConsultation(
