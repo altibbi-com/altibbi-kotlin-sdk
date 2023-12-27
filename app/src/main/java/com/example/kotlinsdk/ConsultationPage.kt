@@ -231,13 +231,15 @@ class ConsultationPage : AppCompatActivity() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
 
+
         val textInputEditText: EditText = findViewById(R.id.textInputEditText)
         val parentConsId: EditText = findViewById(R.id.textInputEditText6)
         val parentConsultationId = parentConsId.text.toString().toIntOrNull()
 
+        println("mner.selectedItem as Strin- >  ${(spinner.selectedItem as String)}")
         val consultationParams = Consultation.ConsultationData(
             question = textInputEditText.text.toString(),
-            medium = (spinner.selectedItem as String),
+            medium = "chat",//(spinner.selectedItem as String),
             userID = 64,
 //            mediaIDs = arrayOf("c8617c16-98ef-11ee-9bc6-9600009a97a9"),
             followUpId = parentConsultationId
@@ -262,18 +264,53 @@ class ConsultationPage : AppCompatActivity() {
 
                             override fun onStatusChange(status: String) {
                                 println("status in onStatusChange is -> $status")
-                                if(status == "in_progress"){
-                                    println("before call sendbird 1")
-                                    val intent = Intent(context, Chat::class.java)
-                                    val bundle = Bundle()
-                                    bundle.putString("consultationId", response.id.toString())
-                                    intent.putExtras(bundle)
-                                    startActivity(intent)
-                                }else if (status == "closed"){
+                                println("response is -> $response")
+                                if(status == "in_progress") {
+                                    ApiService.getConsultation(response.id, object : Consultation.GetConsultationByIdCallBack{
+                                        override fun onSuccess(response: Consultation.GetConsultationByIdResponse) {
+                                            if(response is Consultation.GetConsultationByIdResponse){
+                                                println("GetConsultationByIdResponse all data is -> $response")
+                                                if(response.videoConfig != null){
+                                                    val intent = Intent(applicationContext, Video::class.java)
+                                                    intent.putExtra("apiKey",response.videoConfig?.apiKey)
+                                                    intent.putExtra("callId",response.videoConfig?.callId)
+                                                    intent.putExtra("token",response.videoConfig?.token)
+                                                    startActivity(intent)
+                                                }
+                                                if(response.voipConfig != null){
+                                                    val intent = Intent(applicationContext, Video::class.java)
+                                                    intent.putExtra("apiKey",response.videoConfig?.apiKey)
+                                                    intent.putExtra("callId",response.videoConfig?.callId)
+                                                    intent.putExtra("token",response.videoConfig?.token)
+                                                    intent.putExtra("voip",true)
+                                                    startActivity(intent)
+                                                }
+                                                if (response.chatConfig != null){
+                                                    println("before call sendbird 1")
+                                                    val intent = Intent(context, Chat::class.java)
+                                                    val bundle = Bundle()
+                                                    bundle.putString("consultationId", response.id.toString())
+                                                    intent.putExtras(bundle)
+                                                    startActivity(intent)
+                                                }
+                                            }
+                                        }
+
+                                        override fun onError(error: Any) {
+                                            println("error is in GetConsultationByIdNotFoundResponse -> $error")
+                                        }
+
+                                        override fun onErrorObj(error: Consultation.ConsultationNotFound) {
+                                            if(error is Consultation.ConsultationNotFound){
+                                                println("error is in GetConsultationByIdNotFoundResponse 123 -> $error")
+                                            }
+                                        }
+                                    })
+                                } else if (status == "closed"){
                                     println("the status is closed make an action")
 //                                    val intent = Intent(context, ConsultationPage::class.java)
 //                                    startActivity(intent)
-                                    finish()
+//                                    finish()
                                 }
 
                             }

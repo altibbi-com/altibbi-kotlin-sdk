@@ -87,8 +87,8 @@ class Consultation {
         val pusherChannel: String,
         val chatConfig: ChatConfig.Data,
         val chatHistory: ChatHistory.Data,
-        val voipConfig: VoipConfig.Data,
-        val videoConfig: VoipConfig.Data,
+        val voipConfig: VoipConfig.Data?,
+        val videoConfig: VoipConfig.Data?,
     )
 
     interface GetConsultationByIdCallBack {
