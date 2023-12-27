@@ -83,7 +83,7 @@ class ApiService {
         }
 
 
-        fun getConsultation(consultationId: String, callback: Consultation.GetConsultationByIdCallBack){
+        fun getConsultation(consultationId: Any, callback: Consultation.GetConsultationByIdCallBack){
             val params = null
             NetworkRequest.ApiManager.getRequest("consultations/${consultationId}?expand=$expandValues",
                 params, false, object : NetworkRequest.ApiManager.ApiCallback<Consultation.GetConsultationByIdResponse, Any>{

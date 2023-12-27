@@ -50,7 +50,7 @@ class ConsultationPage : AppCompatActivity() {
         }
 
         createConsultationButton.setOnClickListener {
-            createConsultationFun(tbiSocket)
+            createConsultationFun(tbiSocket, applicationContext)
         }
 
         val cancelButton = findViewById<Button>(R.id.button5);
@@ -224,7 +224,7 @@ class ConsultationPage : AppCompatActivity() {
     }
 
 
-    private fun createConsultationFun(tbiSocket: TBISocket) {
+    private fun createConsultationFun(tbiSocket: TBISocket, context: Context) {
         val spinner = findViewById<Spinner>(R.id.spinner1)
         val values = listOf("chat", "call", "video")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, values)
@@ -239,7 +239,7 @@ class ConsultationPage : AppCompatActivity() {
             question = textInputEditText.text.toString(),
             medium = (spinner.selectedItem as String),
             userID = 64,
-            mediaIDs = arrayOf("c8617c16-98ef-11ee-9bc6-9600009a97a9"),
+//            mediaIDs = arrayOf("c8617c16-98ef-11ee-9bc6-9600009a97a9"),
             followUpId = parentConsultationId
         )
         ApiService.createConsultation(
@@ -257,6 +257,25 @@ class ConsultationPage : AppCompatActivity() {
                         tbiSocket.initiateSocket(pusherData, object : TBISocket.InitiateSocketCallBack{
                             override fun onConnect(status: String) {
                                 println("onConnect status -> $status")
+                                println("create con response is -> $response")
+                            }
+
+                            override fun onStatusChange(status: String) {
+                                println("status in onStatusChange is -> $status")
+                                if(status == "in_progress"){
+                                    println("before call sendbird 1")
+                                    val intent = Intent(context, Chat::class.java)
+                                    val bundle = Bundle()
+                                    bundle.putString("consultationId", response.id.toString())
+                                    intent.putExtras(bundle)
+                                    startActivity(intent)
+                                }else if (status == "closed"){
+                                    println("the status is closed make an action")
+//                                    val intent = Intent(context, ConsultationPage::class.java)
+//                                    startActivity(intent)
+                                    finish()
+                                }
+
                             }
                         })
                     }

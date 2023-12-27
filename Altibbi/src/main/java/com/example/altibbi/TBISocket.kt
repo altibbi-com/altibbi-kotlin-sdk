@@ -25,6 +25,7 @@ class TBISocket : Service() {
 
     interface InitiateSocketCallBack {
         fun onConnect(status: String)
+        fun onStatusChange(status: String)
     }
 
     fun initiateSocket(params: PusherParams, callBack: InitiateSocketCallBack){
@@ -69,6 +70,7 @@ class TBISocket : Service() {
                 val json = JSONObject(event?.data.toString())
                 val status = json.getString("status")
                 println("status is -> $status" );
+                callBack.onStatusChange(status)
             }
             override fun onSubscriptionSucceeded(channelName: String) {
                 println("channelName -> $channelName")
