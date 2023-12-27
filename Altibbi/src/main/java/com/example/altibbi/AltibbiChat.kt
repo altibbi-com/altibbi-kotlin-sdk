@@ -3,6 +3,7 @@ package com.example.altibbi
 import android.content.Context
 import com.sendbird.android.GroupChannel
 import com.sendbird.android.SendBird
+import com.sendbird.android.SendBird.ChannelHandler
 import com.sendbird.android.SendBird.ConnectHandler
 import com.sendbird.android.SendBirdException
 import com.sendbird.android.handlers.InitResultHandler
@@ -48,8 +49,10 @@ class AltibbiChat {
             GroupChannel.getChannel(channelName) { groupChannel, error ->
                 if (error == null) {
                     callback.onChannelReceived(groupChannel)
-            }
-        } }
+            } } }
 
+        fun addChannelHandler(identifier: String, handler: ChannelHandler){
+            SendBird.addChannelHandler(identifier,handler)
+        }
 
     }}
