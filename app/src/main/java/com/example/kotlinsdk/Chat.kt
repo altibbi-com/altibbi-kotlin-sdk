@@ -17,7 +17,10 @@ import com.example.altibbi.Consultation
 import com.sendbird.android.BaseChannel
 import com.sendbird.android.BaseMessage
 import com.sendbird.android.GroupChannel
+import com.sendbird.android.PreviousMessageListQuery.MessageListQueryResult
+import com.sendbird.android.SendBird
 import com.sendbird.android.SendBirdException
+import com.sendbird.android.User
 import com.sendbird.android.UserMessage
 class Chat : AppCompatActivity() {
     var currentChannel: GroupChannel? = null
@@ -102,6 +105,26 @@ class Chat : AppCompatActivity() {
         }
     }
 
+    class MyChannelHandler(
+        val onChannelMessageReceived: (BaseMessage) -> Unit
+    ) : SendBird.ChannelHandler() {
+
+        override fun onMessageReceived(channel: BaseChannel, message: BaseMessage) {
+            println("message in onMessageReceived is -> $message")
+            if (message.message.isNotEmpty()) {
+                onChannelMessageReceived(message)
+            }
+        }
+
+//        override fun onTypingStatusUpdated(channel: BaseChannel) {
+//            println("typing started from Dr side")
+//        }
+//
+//        override fun onUserLeft(channel: BaseChannel, user: User) {
+//            println("Chat finished")
+//        }
+    }
+
     private fun getConsultation(context: Context, response: String) {
         ApiService.getConsultation(response, object : Consultation.GetConsultationByIdCallBack {
             override fun onSuccess(response: Consultation.GetConsultationByIdResponse) {
@@ -117,14 +140,24 @@ class Chat : AppCompatActivity() {
                             override fun onChannelReceived(channel: GroupChannel?) {
                                 println("Received channel: $channel")
                                 currentChannel = channel
-                                currentChannel?.createPreviousMessageListQuery()?.load(100, true) { messages, error ->
-                                    if (error == null) {
-                                        println("in createPreviousMessageListQuery messages is -> $messages")
-                                        messages?.let { messageAdapter.addMessages(it) }
-                                    } else {
-                                        println("Error fetching message history: ${error.message}")
+                                currentChannel?.createPreviousMessageListQuery()?.load(100, true, object : MessageListQueryResult{
+                                    override fun onResult(
+                                        p0: MutableList<BaseMessage>?,
+                                        p1: SendBirdException?
+                                    ) {
+                                        p0?.let { messageAdapter.addMessages(it) }
                                     }
-                                }
+                                })
+
+                                val channelHandler = MyChannelHandler(
+                                        onChannelMessageReceived = { message: BaseMessage ->
+                                            runOnUiThread {
+                                                println("message received here it is 1111->  $message ")
+                                                messageAdapter.addMessage(message)
+                                                scrollToLastMessage()
+                                            }
+                                        })
+                                AltibbiChat.addChannelHandler("myChannelHandler",channelHandler)
                             }
                         })
 
