@@ -77,6 +77,10 @@ class WaitingRoom : AppCompatActivity() {
                 println("create con response is -> $response")
             }
 
+            override fun onError(status: String) {
+                finish()
+            }
+
             override fun onStatusChange(status: String) {
                 println("status in onStatusChange is -> $status")
                 println("response is -> $response")

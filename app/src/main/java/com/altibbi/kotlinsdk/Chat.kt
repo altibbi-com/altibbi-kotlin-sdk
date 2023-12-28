@@ -67,6 +67,48 @@ class Chat : AppCompatActivity() {
                 })
             }
         }
+
+        val channelHandler = MyChannelHandler(
+            activity = this,
+            onChannelMessageReceived = { message: BaseMessage ->
+                runOnUiThread {
+                    messageAdapter.addMessage(message)
+                    scrollToLastMessage()
+                }
+            }
+        )
+        AltibbiChat.addChannelHandler("myChannelHandler",channelHandler)
+    }
+
+
+    override fun onStart() {
+        super.onStart()
+
+        val channelHandler = MyChannelHandler(
+            activity = this,
+            onChannelMessageReceived = { message: BaseMessage ->
+                runOnUiThread {
+                    messageAdapter.addMessage(message)
+                    scrollToLastMessage()
+                }
+            }
+        )
+        AltibbiChat.addChannelHandler("myChannelHandler",channelHandler)
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        val channelHandler = MyChannelHandler(
+            activity = this,
+            onChannelMessageReceived = { message: BaseMessage ->
+                runOnUiThread {
+                    messageAdapter.addMessage(message)
+                    scrollToLastMessage()
+                }
+            }
+        )
+        AltibbiChat.addChannelHandler("myChannelHandler",channelHandler)
     }
 
     class MessageAdapter(private val scrollToLastMessage: () -> Unit) : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
@@ -144,16 +186,6 @@ class Chat : AppCompatActivity() {
                                         p0: MutableList<BaseMessage>?,
                                         p1: SendBirdException?
                                     ) {
-                                        val channelHandler = MyChannelHandler(
-                                            activity = activity,
-                                            onChannelMessageReceived = { message: BaseMessage ->
-                                                runOnUiThread {
-                                                    messageAdapter.addMessage(message)
-                                                    scrollToLastMessage()
-                                                }
-                                            }
-                                        )
-                                        AltibbiChat.addChannelHandler("myChannelHandler",channelHandler)
                                         p0?.let { messageAdapter.addMessages(it) }
                                     }
                                 })

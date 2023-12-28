@@ -25,6 +25,7 @@ class TBISocket : Service() {
 
     interface InitiateSocketCallBack {
         fun onConnect(status: String)
+        fun onError(status: String)
         fun onStatusChange(status: String)
     }
 
@@ -44,6 +45,7 @@ class TBISocket : Service() {
             }
 
             override fun onError(message: String, code: String, e: Exception) {
+                callBack.onError(message)
                 println("Error: $message")
                 e.printStackTrace()
             }
