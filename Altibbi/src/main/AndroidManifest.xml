@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
-
     <application>
         <service
             android:name=".NetworkRequest"
@@ -17,27 +11,6 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity
-            android:name=".Media"
-            android:exported="false" />
-        <activity
-            android:name=".VoipConfig"
-            android:exported="false" />
-        <activity
-            android:name=".ChatHistory"
-            android:exported="false" />
-        <activity
-            android:name=".ChatConfig"
-            android:exported="false" />
-        <activity
-            android:name=".User"
-            android:exported="false" />
-        <activity
-            android:name=".Consultation"
-            android:exported="false" />
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
     </application>
 
 </manifest>

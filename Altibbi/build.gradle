@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.altibbi'
+    namespace 'com.altibbi.telehealth'
     compileSdk 33
 
     defaultConfig {
