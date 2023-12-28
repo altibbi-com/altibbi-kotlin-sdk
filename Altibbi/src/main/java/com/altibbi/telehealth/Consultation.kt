@@ -32,7 +32,7 @@ class Consultation {
 
 
     interface GetLastConsultationCallback {
-        fun onSuccess(response: Any)
+        fun onSuccess(response: ConsultationResponse)
         fun onError(error: Any)
     }
 

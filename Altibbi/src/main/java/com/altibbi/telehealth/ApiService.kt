@@ -10,7 +10,6 @@ class ApiService {
     companion object {
         private const val expandValues = "pusherAppKey,parentConsultation,consultations,user,media,pusherChannel,chatConfig,chatHistory,voipConfig,videoConfig,recommendation"
         fun createConsultation(createConsultationRequest: Consultation.ConsultationData, callback: Consultation.CreateConsultationCallback) {
-            println("createConsultationRequest object ---> $createConsultationRequest")
             val params = mutableMapOf(
                 "question" to createConsultationRequest.question,
                 "medium" to createConsultationRequest.medium,
@@ -29,7 +28,6 @@ class ApiService {
                 params["media_ids"] = mediaIDsString
             }
             println("params in createConsultation is - > $params")
-//            return
             NetworkRequest.ApiManager.postRequest("consultations?expand=$expandValues",
                 params, null, object : NetworkRequest.ApiManager.ApiCallback<Consultation.ConsultationResponse, Any>{
                     override fun onSuccess(response: Consultation.ConsultationResponse) {
@@ -50,12 +48,10 @@ class ApiService {
             NetworkRequest.ApiManager.getRequest("consultations/$consultationId/download-prescription",
                 params, true, object : NetworkRequest.ApiManager.ApiCallback<Any, Any> {
                     override fun onSuccess(response: Any) {
-                        println("getPrescription success response $response")
 //                    callback.onSuccess(response)
                     }
 
                     override fun onError(error: Any) {
-                        println("getConsultationById onError response $error")
 //                    callback.onError(error)
 
                     }
@@ -63,20 +59,15 @@ class ApiService {
             )
         }
 
-
         fun cancelConsultation(consultationId: String, callback: Consultation.CancelConsultationCallBack){
-            println("consultationId is -> $consultationId")
-
             val params = null
             NetworkRequest.ApiManager.postRequest("consultations/$consultationId/cancel",
                 params, null, object : NetworkRequest.ApiManager.ApiCallback<Consultation.CancelConsultationResponse, Any>{
                     override fun onSuccess(response: Consultation.CancelConsultationResponse) {
-                        println("cancel consultation success response $response")
                         callback.onSuccess(response)
                     }
 
                     override fun onError(error: Any) {
-                        println("cancel consultation onError response $error")
                         callback.onError(error)
                     }
                 }, Consultation.CancelConsultationResponse::class.java)
@@ -88,12 +79,10 @@ class ApiService {
             NetworkRequest.ApiManager.getRequest("consultations/${consultationId}?expand=$expandValues",
                 params, false, object : NetworkRequest.ApiManager.ApiCallback<Consultation.GetConsultationByIdResponse, Any>{
                     override fun onSuccess(response: Consultation.GetConsultationByIdResponse) {
-                        println("getConsultationById success response $response")
                         callback.onSuccess(response)
                     }
 
                     override fun onError(error: Any) {
-                        println("getConsultationById onError response $error")
                         if(error is Consultation.ConsultationNotFound){
                             callback.onErrorObj(error)
                         } else{
@@ -104,18 +93,38 @@ class ApiService {
         }
 
 
-
-
-        fun getLastConsultation(params: Map<String, Any>, callback: Consultation.GetLastConsultationCallback){
+        fun getLastConsultation(callback: Consultation.GetLastConsultationCallback){
+            val params = mapOf<String, Any>(
+                "per-page" to 1,
+                "sort" to "-id"
+            )
             NetworkRequest.ApiManager.getRequest("consultations?expand=$expandValues",
                 params, false, object : NetworkRequest.ApiManager.ApiCallback<Any, Any>{
                     override fun onSuccess(response: Any) {
-                        println("getConsultationById success response $response")
-                        callback.onSuccess(response)
+                        try {
+                            val gson = Gson()
+                            val jsonResponse = gson.toJson(response)
+                            val listType = object : TypeToken<List<Consultation.ConsultationResponse>>() {}.type
+                            val responseObject: List<Consultation.ConsultationResponse>? = try {
+                                gson.fromJson(jsonResponse, listType)
+                            } catch (e: JsonSyntaxException) {
+                                e.printStackTrace()
+                                null
+                            }
+
+                            if (responseObject != null && responseObject.isNotEmpty()) {
+                                val firstConsultation: Consultation.ConsultationResponse = responseObject[0]
+                                callback.onSuccess(firstConsultation)
+                            } else {
+                                println("Failed to parse JSON response or empty list.")
+                            }
+
+                        }catch (e: Exception){
+
+                        }
                     }
 
                     override fun onError(error: Any) {
-                        println("getConsultationById onError response $error")
                         callback.onError(error)
                     }
                 }, Any::class.java)
@@ -127,11 +136,9 @@ class ApiService {
             NetworkRequest.ApiManager.getRequest("consultations?expand=$expandValues",
                 params ,false, object : NetworkRequest.ApiManager.ApiCallback<Any, Any>{
                     override fun onSuccess(response: Any) {
-                        println("getConsultationList success response $response")
                         try {
                             val gson = Gson()
                             val jsonResponse = gson.toJson(response)
-                            println("Raw JSON response: $jsonResponse")
                             val listType = object : TypeToken<List<Consultation.ConsultationResponse>>() {}.type
                             val responseObject: List<Consultation.ConsultationResponse>? = try {
                                 gson.fromJson(jsonResponse, listType)
@@ -140,7 +147,6 @@ class ApiService {
                                 null
                             }
                             if (responseObject != null) {
-                                println("Parsed JSON successfully: $responseObject")
                                 callback.onSuccess(responseObject)
                             } else {
                                 println("Failed to parse JSON response.")
@@ -152,7 +158,6 @@ class ApiService {
                     }
 
                     override fun onError(error: Any) {
-                        println("getConsultationList onError response $error")
                         callback.onError(error)
                     }
                 },  Any::class.java)
@@ -165,12 +170,10 @@ class ApiService {
             NetworkRequest.ApiManager.deleteRequest("consultations/$consultationId",
                 params ,object : NetworkRequest.ApiManager.ApiCallback<Any, Any>{
                     override fun onSuccess(response: Any) {
-                        println("deleteConsultation success response $response")
                         callback.onSuccess("success")
                     }
 
                     override fun onError(error: Any) {
-                        println("deleteConsultation onError response $error")
                         callback.onError(error)
                     }
                 },Any::class.java)
@@ -182,12 +185,10 @@ class ApiService {
             NetworkRequest.ApiManager.postRequest("media",
                 params, file ,object : NetworkRequest.ApiManager.ApiCallback<Consultation.UploadMediaResponse, Any>{
                     override fun onSuccess(response: Consultation.UploadMediaResponse) {
-                        println("uploadMedia success response $response")
                         callback.onSuccess(response)
                     }
 
                     override fun onError(error: Any) {
-                        println("uploadMedia onError response $error")
                         callback.onError(error)
                     }
                 }, Consultation.UploadMediaResponse::class.java)
@@ -198,12 +199,10 @@ class ApiService {
             NetworkRequest.ApiManager.getRequest("users/$phrId",
                 params, false, object : NetworkRequest.ApiManager.ApiCallback<User.UserResponse, Any>{
                     override fun onSuccess(response: User.UserResponse) {
-                        println("getUser success response $response")
                         callback.onSuccess(response)
                     }
 
                     override fun onError(error: Any) {
-                        println("getUser onError response $error")
                         callback.onError(error)
                     }
                 }, User.UserResponse::class.java)
@@ -214,12 +213,10 @@ class ApiService {
             NetworkRequest.ApiManager.deleteRequest("users/$id",
                 params ,object : NetworkRequest.ApiManager.ApiCallback<Any, Any>{
                     override fun onSuccess(response: Any) {
-                        println("deleteConsultation success response $response")
                         callback.onSuccess("success")
                     }
 
                     override fun onError(error: Any) {
-                        println("deleteConsultation onError response $error")
                         callback.onError(error)
                     }
                 },Any::class.java)
@@ -230,11 +227,9 @@ class ApiService {
             NetworkRequest.ApiManager.getRequest("users",
                 params ,false ,object : NetworkRequest.ApiManager.ApiCallback<Any, Any>{
                     override fun onSuccess(response: Any) {
-                        println("getUsers success response $response")
                         try {
                             val gson = Gson()
                             val jsonResponse = gson.toJson(response)
-                            println("Raw JSON response: $jsonResponse")
                             val listType = object : TypeToken<List<User.UserResponse>>() {}.type
                             val responseObject: List<User.UserResponse>? = try {
                                 gson.fromJson(jsonResponse, listType)
@@ -254,7 +249,6 @@ class ApiService {
                     }
 
                     override fun onError(error: Any) {
-                        println("getUsers onError response $error")
                         callback.onError(error)
                     }
                 },  Any::class.java )
@@ -268,12 +262,10 @@ class ApiService {
             NetworkRequest.ApiManager.postRequest("users",
                 filteredParams,null, object : NetworkRequest.ApiManager.ApiCallback<User.UserResponse, Any>{
                     override fun onSuccess(response: User.UserResponse) {
-                        println("createUser success response $response")
                         callback.onSuccess(response)
                     }
 
                     override fun onError(error: Any) {
-                        println("createUser onError response $error")
                         callback.onError(error)
                     }
                 }, User.UserResponse::class.java)
@@ -286,12 +278,10 @@ class ApiService {
             NetworkRequest.ApiManager.putRequest("users/${userParams.id}",
                 filteredParams, object : NetworkRequest.ApiManager.ApiCallback<User.UserResponse, Any>{
                     override fun onSuccess(response: User.UserResponse) {
-                        println("updateUser success response $response")
                         callback.onSuccess(response)
                     }
 
                     override fun onError(error: Any) {
-                        println("updateUser onError response $error")
                         callback.onError(error)
                     }
                 }, User.UserResponse::class.java)

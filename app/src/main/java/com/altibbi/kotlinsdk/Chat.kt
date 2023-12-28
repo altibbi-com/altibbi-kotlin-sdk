@@ -34,7 +34,6 @@ class Chat : AppCompatActivity() {
         setContentView(R.layout.activity_chat)
         val bundle = intent.extras
         val consultationId = bundle?.getString("consultationId")
-        println("consultationId is -> $consultationId")
         val buttonSendMessage = findViewById<Button>(R.id.buttonSendMessage1)
         val cancelConsultationButton = findViewById<Button>(R.id.button17)
         val messageInput: EditText = findViewById(R.id.messageInput)
@@ -58,7 +57,6 @@ class Chat : AppCompatActivity() {
                 currentChannel?.sendUserMessage(message, object : BaseChannel.SendUserMessageHandler {
                     override fun onSent(userMessage: UserMessage?, e: SendBirdException?) {
                         if (e == null) {
-                            println("Message sent successfully, add it to the adapter the message is -> ${userMessage?.message}")
                             userMessage?.let { messageAdapter.addMessage(it) }
                             messageInput.text.clear()
                             scrollToLastMessage()
@@ -75,7 +73,6 @@ class Chat : AppCompatActivity() {
         private val messages: MutableList<BaseMessage> = mutableListOf()
 
         fun addMessage(message: BaseMessage) {
-            println("message in addMessage is-> $message")
             messages.add(message)
             notifyItemInserted(messages.size - 1)
         }
@@ -119,7 +116,6 @@ class Chat : AppCompatActivity() {
     ) : SendBird.ChannelHandler() {
 
         override fun onMessageReceived(channel: BaseChannel, message: BaseMessage) {
-            println("message in onMessageReceived is -> $message")
             if (message.message.isNotEmpty()) {
                 onChannelMessageReceived(message)
             }
@@ -136,40 +132,31 @@ class Chat : AppCompatActivity() {
     private fun getConsultation(activity: Activity ,context: Context, response: String) {
         ApiService.getConsultation(response, object : Consultation.GetConsultationByIdCallBack {
             override fun onSuccess(response: Consultation.GetConsultationByIdResponse) {
-                println("before call sendbird 2")
-                println("getConsultation response is $response")
                 if (response is Consultation.GetConsultationByIdResponse) {
-                    println("GetConsultationByIdResponse all data is -> $response")
-
                     response.chatConfig.appId?.let { response.chatConfig.chatUserId?.let { it1 ->
                         AltibbiChat.init(it, context, it1, response.chatConfig.chatUserToken!!)
                         AltibbiChat.getChannel("channel_${response.chatConfig.groupId}", object :
                             AltibbiChat.Companion.ChannelCallback {
                             override fun onChannelReceived(channel: GroupChannel?) {
-                                println("Received channel: $channel")
                                 currentChannel = channel
-                                currentChannel?.createPreviousMessageListQuery()?.load(30, false, object : MessageListQueryResult{
+                                currentChannel?.createPreviousMessageListQuery()?.load(100, false, object : MessageListQueryResult{
                                     override fun onResult(
                                         p0: MutableList<BaseMessage>?,
                                         p1: SendBirdException?
                                     ) {
-                                        println("messages in onResult is -> $p0")
-
+                                        val channelHandler = MyChannelHandler(
+                                            activity = activity,
+                                            onChannelMessageReceived = { message: BaseMessage ->
+                                                runOnUiThread {
+                                                    messageAdapter.addMessage(message)
+                                                    scrollToLastMessage()
+                                                }
+                                            }
+                                        )
+                                        AltibbiChat.addChannelHandler("myChannelHandler",channelHandler)
                                         p0?.let { messageAdapter.addMessages(it) }
                                     }
                                 })
-
-                                val channelHandler = MyChannelHandler(
-                                    activity = activity,
-                                        onChannelMessageReceived = { message: BaseMessage ->
-                                            runOnUiThread {
-                                                println("message received here it is 1111->  $message ")
-                                                messageAdapter.addMessage(message)
-                                                scrollToLastMessage()
-                                            }
-                                        }
-                                )
-                                AltibbiChat.addChannelHandler("myChannelHandler",channelHandler)
                             }
                         })
 
@@ -202,7 +189,6 @@ class Chat : AppCompatActivity() {
             id,
             object : Consultation.CancelConsultationCallBack{
                 override fun onSuccess(response: Consultation.CancelConsultationResponse){
-                    println("Cancel Consultation Response not all data -> $response")
                     if(response is Consultation.CancelConsultationResponse){
                         println("Cancel Consultation Response all data is -> $response")
                         finish()

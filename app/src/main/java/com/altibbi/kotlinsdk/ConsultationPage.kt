@@ -77,6 +77,26 @@ class ConsultationPage : AppCompatActivity() {
         getPrescriptionButton.setOnClickListener{
             getPrescriptionFun(applicationContext)
         }
+
+        val getLastConsultationButton = findViewById<Button>(R.id.button18)
+        getLastConsultationButton.setOnClickListener {
+            getLastConsultation()
+        }
+    }
+
+    private fun getLastConsultation(){
+        ApiService.getLastConsultation(object : Consultation.GetLastConsultationCallback{
+            override fun onSuccess(response: Consultation.ConsultationResponse) {
+                if (response.status == "new" || response.status == "in_progress"){
+                    val intent = Intent(applicationContext, WaitingRoom::class.java)
+                    startActivity(intent)
+                }
+            }
+            override fun onError(error: Any) {
+            }
+
+        })
+
     }
 
     private fun getPrescriptionFun( context: Context) {
@@ -258,67 +278,67 @@ class ConsultationPage : AppCompatActivity() {
                         )
 
 
-//                        val intent = Intent(applicationContext, WaitingRoom::class.java)
-//                        startActivity(intent)
+                        val intent = Intent(applicationContext, WaitingRoom::class.java)
+                        startActivity(intent)
 
 
-                        tbiSocket.initiateSocket(pusherData, object : TBISocket.InitiateSocketCallBack{
-                            override fun onConnect(status: String) {
-                                println("onConnect status -> $status")
-                                println("create con response is -> $response")
-                            }
-
-                            override fun onStatusChange(status: String) {
-                                println("status in onStatusChange is -> $status")
-                                println("response is -> $response")
-                                if(status == "in_progress") {
-                                    ApiService.getConsultation(response.id, object : Consultation.GetConsultationByIdCallBack{
-                                        override fun onSuccess(response: Consultation.GetConsultationByIdResponse) {
-                                            if(response is Consultation.GetConsultationByIdResponse){
-                                                println("GetConsultationByIdResponse all data is -> $response")
-                                                if(response.videoConfig != null){
-                                                    val intent = Intent(applicationContext, Video::class.java)
-                                                    intent.putExtra("apiKey",response.videoConfig?.apiKey)
-                                                    intent.putExtra("callId",response.videoConfig?.callId)
-                                                    intent.putExtra("token",response.videoConfig?.token)
-                                                    startActivity(intent)
-                                                }
-                                                if(response.voipConfig != null){
-                                                    val intent = Intent(applicationContext, Video::class.java)
-                                                    intent.putExtra("apiKey",response.videoConfig?.apiKey)
-                                                    intent.putExtra("callId",response.videoConfig?.callId)
-                                                    intent.putExtra("token",response.videoConfig?.token)
-                                                    intent.putExtra("voip",true)
-                                                    startActivity(intent)
-                                                }
-                                                if (response.chatConfig != null){
-                                                    println("before call sendbird 1")
-                                                    val intent = Intent(context, Chat::class.java)
-                                                    val bundle = Bundle()
-                                                    bundle.putString("consultationId", response.id.toString())
-                                                    intent.putExtras(bundle)
-                                                    startActivity(intent)
-                                                }
-                                            }
-                                        }
-
-                                        override fun onError(error: Any) {
-                                            println("error is in GetConsultationByIdNotFoundResponse -> $error")
-                                        }
-
-                                        override fun onErrorObj(error: Consultation.ConsultationNotFound) {
-                                            if(error is Consultation.ConsultationNotFound){
-                                                println("error is in GetConsultationByIdNotFoundResponse 123 -> $error")
-                                            }
-                                        }
-                                    })
-                                } else if (status == "closed"){
-                                    println("the status is closed make an action")
-//                                    finish()
-                                }
-
-                            }
-                        })
+//                        tbiSocket.initiateSocket(pusherData, object : TBISocket.InitiateSocketCallBack{
+//                            override fun onConnect(status: String) {
+//                                println("onConnect status -> $status")
+//                                println("create con response is -> $response")
+//                            }
+//
+//                            override fun onStatusChange(status: String) {
+//                                println("status in onStatusChange is -> $status")
+//                                println("response is -> $response")
+//                                if(status == "in_progress") {
+//                                    ApiService.getConsultation(response.id, object : Consultation.GetConsultationByIdCallBack{
+//                                        override fun onSuccess(response: Consultation.GetConsultationByIdResponse) {
+//                                            if(response is Consultation.GetConsultationByIdResponse){
+//                                                println("GetConsultationByIdResponse all data is -> $response")
+//                                                if(response.videoConfig != null){
+//                                                    val intent = Intent(applicationContext, Video::class.java)
+//                                                    intent.putExtra("apiKey",response.videoConfig?.apiKey)
+//                                                    intent.putExtra("callId",response.videoConfig?.callId)
+//                                                    intent.putExtra("token",response.videoConfig?.token)
+//                                                    startActivity(intent)
+//                                                }
+//                                                if(response.voipConfig != null){
+//                                                    val intent = Intent(applicationContext, Video::class.java)
+//                                                    intent.putExtra("apiKey",response.videoConfig?.apiKey)
+//                                                    intent.putExtra("callId",response.videoConfig?.callId)
+//                                                    intent.putExtra("token",response.videoConfig?.token)
+//                                                    intent.putExtra("voip",true)
+//                                                    startActivity(intent)
+//                                                }
+//                                                if (response.chatConfig != null){
+//                                                    println("before call sendbird 1")
+//                                                    val intent = Intent(context, Chat::class.java)
+//                                                    val bundle = Bundle()
+//                                                    bundle.putString("consultationId", response.id.toString())
+//                                                    intent.putExtras(bundle)
+//                                                    startActivity(intent)
+//                                                }
+//                                            }
+//                                        }
+//
+//                                        override fun onError(error: Any) {
+//                                            println("error is in GetConsultationByIdNotFoundResponse -> $error")
+//                                        }
+//
+//                                        override fun onErrorObj(error: Consultation.ConsultationNotFound) {
+//                                            if(error is Consultation.ConsultationNotFound){
+//                                                println("error is in GetConsultationByIdNotFoundResponse 123 -> $error")
+//                                            }
+//                                        }
+//                                    })
+//                                } else if (status == "closed"){
+//                                    println("the status is closed make an action")
+////                                    finish()
+//                                }
+//
+//                            }
+//                        })
                     }
                 }
                 override fun onError(error: Any) {
