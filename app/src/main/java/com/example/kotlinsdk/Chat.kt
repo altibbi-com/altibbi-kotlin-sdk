@@ -1,5 +1,6 @@
 package com.example.kotlinsdk
 
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -43,7 +44,7 @@ class Chat : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         if (consultationId != null) {
-            getConsultation(this, consultationId)
+            getConsultation(this,this, consultationId)
             cancelConsultationButton.setOnClickListener{
                 cancelConsultation(consultationId)
             }
@@ -106,6 +107,7 @@ class Chat : AppCompatActivity() {
     }
 
     class MyChannelHandler(
+        private val activity: Activity,
         val onChannelMessageReceived: (BaseMessage) -> Unit
     ) : SendBird.ChannelHandler() {
 
@@ -115,17 +117,16 @@ class Chat : AppCompatActivity() {
                 onChannelMessageReceived(message)
             }
         }
-
-//        override fun onTypingStatusUpdated(channel: BaseChannel) {
-//            println("typing started from Dr side")
-//        }
-//
-//        override fun onUserLeft(channel: BaseChannel, user: User) {
-//            println("Chat finished")
-//        }
+        override fun onTypingStatusUpdated(channel: GroupChannel?) {
+            println("typing started from Dr side")
+        }
+        override fun onUserLeft(channel: GroupChannel?, user: User?) {
+            println("Chat finished")
+            activity.finish()
+        }
     }
 
-    private fun getConsultation(context: Context, response: String) {
+    private fun getConsultation(activity: Activity ,context: Context, response: String) {
         ApiService.getConsultation(response, object : Consultation.GetConsultationByIdCallBack {
             override fun onSuccess(response: Consultation.GetConsultationByIdResponse) {
                 println("before call sendbird 2")
@@ -140,23 +141,27 @@ class Chat : AppCompatActivity() {
                             override fun onChannelReceived(channel: GroupChannel?) {
                                 println("Received channel: $channel")
                                 currentChannel = channel
-                                currentChannel?.createPreviousMessageListQuery()?.load(100, true, object : MessageListQueryResult{
+                                currentChannel?.createPreviousMessageListQuery()?.load(30, false, object : MessageListQueryResult{
                                     override fun onResult(
                                         p0: MutableList<BaseMessage>?,
                                         p1: SendBirdException?
                                     ) {
+                                        println("messages in onResult is -> $p0")
+
                                         p0?.let { messageAdapter.addMessages(it) }
                                     }
                                 })
 
                                 val channelHandler = MyChannelHandler(
+                                    activity = activity,
                                         onChannelMessageReceived = { message: BaseMessage ->
                                             runOnUiThread {
                                                 println("message received here it is 1111->  $message ")
                                                 messageAdapter.addMessage(message)
                                                 scrollToLastMessage()
                                             }
-                                        })
+                                        }
+                                )
                                 AltibbiChat.addChannelHandler("myChannelHandler",channelHandler)
                             }
                         })

@@ -308,8 +308,6 @@ class ConsultationPage : AppCompatActivity() {
                                     })
                                 } else if (status == "closed"){
                                     println("the status is closed make an action")
-//                                    val intent = Intent(context, ConsultationPage::class.java)
-//                                    startActivity(intent)
 //                                    finish()
                                 }
 

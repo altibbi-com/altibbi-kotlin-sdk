@@ -29,7 +29,6 @@ class TBISocket : Service() {
     }
 
     fun initiateSocket(params: PusherParams, callBack: InitiateSocketCallBack){
-        println("params in initiateSocket is -> $params")
         val channelAuthorizer = HttpChannelAuthorizer("${Constants.ENDPOINT}auth/pusher?access-token=${Constants.AUTH}")
         val options = PusherOptions().setCluster("eu").setChannelAuthorizer(channelAuthorizer)
          pusher = Pusher(params.pusherAppKey, options)
@@ -40,7 +39,6 @@ class TBISocket : Service() {
                 if (change.currentState == ConnectionState.CONNECTED) {
                     // Handle successful connection
                     callBack.onConnect("connected")
-                    println("im in this if change.currentState == ConnectionState.CONNECTED")
                 }
             }
 
@@ -50,7 +48,6 @@ class TBISocket : Service() {
             }
         },ConnectionState.ALL)
 
-        println("before declare channel")
         val channel: PrivateChannel = pusher!!.subscribePrivate(params.pusherChannel, object :
             PrivateChannelEventListener {
             override fun onEvent(event: PusherEvent?) {
@@ -64,7 +61,6 @@ class TBISocket : Service() {
         println("channel is -> $channel")
         channel.bind("call-status", object : PrivateChannelEventListener {
             override fun onAuthenticationFailure(message: String, e: Exception) {
-                println("message is -> $message")
             }
             override fun onEvent(event: PusherEvent?) {
                 val json = JSONObject(event?.data.toString())
