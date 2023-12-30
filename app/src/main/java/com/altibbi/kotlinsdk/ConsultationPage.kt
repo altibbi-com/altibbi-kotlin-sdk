@@ -20,8 +20,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.altibbi.telehealth.ApiService
 import com.altibbi.telehealth.Consultation
-import java.io.File
 import com.altibbi.telehealth.TBISocket
+import java.io.File
 
 
 class ConsultationPage : AppCompatActivity() {
@@ -256,7 +256,6 @@ class ConsultationPage : AppCompatActivity() {
         val parentConsId: EditText = findViewById(R.id.textInputEditText6)
         val parentConsultationId = parentConsId.text.toString().toIntOrNull()
 
-        println("mner.selectedItem as Strin- >  ${(spinner.selectedItem as String)}")
         val consultationParams = Consultation.ConsultationData(
             question = textInputEditText.text.toString(),
             medium = "chat",//(spinner.selectedItem as String),

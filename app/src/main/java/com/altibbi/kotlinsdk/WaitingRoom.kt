@@ -66,12 +66,12 @@ class WaitingRoom : AppCompatActivity() {
         }) }
 
     private fun initSocket(response: Consultation.ConsultationResponse, context: Context){
-        val pusherData = TBISocket.PusherParams(
+        val pusherData = TBISocket.Companion.PusherParams(
             pusherAppKey = response.pusherAppKey,
             pusherChannel = response.pusherChannel
         )
 
-        tbiSocket.initiateSocket(pusherData, object : TBISocket.InitiateSocketCallBack{
+        TBISocket.initiateSocket(pusherData, object : TBISocket.Companion.InitiateSocketCallBack{
             override fun onConnect(status: String) {
                 println("onConnect status -> $status")
                 println("create con response is -> $response")

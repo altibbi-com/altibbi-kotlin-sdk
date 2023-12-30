@@ -6,11 +6,6 @@
             android:name=".NetworkRequest"
             android:enabled="true"
             android:exported="true"></service>
-        <service
-            android:name=".TBISocket"
-            android:enabled="true"
-            android:exported="true" />
-
     </application>
 
 </manifest>
