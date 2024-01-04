@@ -6,71 +6,90 @@ import com.pusher.client.channel.PrivateChannel
 import com.pusher.client.channel.PrivateChannelEventListener
 import com.pusher.client.channel.PusherEvent
 import com.pusher.client.connection.ConnectionEventListener
-import com.pusher.client.connection.ConnectionState
 import com.pusher.client.connection.ConnectionStateChange
 import com.pusher.client.util.HttpChannelAuthorizer
 import org.json.JSONObject
+import java.io.IOException
 
 class TBISocket {
-    companion object{
-        private var pusher: Pusher? = null
-        data class PusherParams(
-            val pusherAppKey: String,
-            val pusherChannel: String,
-        )
-
-        interface InitiateSocketCallBack {
-            fun onConnect(status: String)
-            fun onError(status: String)
-            fun onStatusChange(status: String)
+    private var pusher: Pusher? = null
+    private var channel: PrivateChannel? = null
+    fun init (
+        channelName: String ,
+        appKey : String,
+        connectionCallback : TBISocketEventListener,
+        subscribeCallback : TBISubscribeEventListener,
+    ) {
+        val token : String? = AltibbiService.authToken
+        val url : String? = AltibbiService.url
+        if(token.isNullOrEmpty()){
+            throw IOException("Token is missing or invalid.")
         }
-
-        fun initiateSocket(params: PusherParams, callBack: InitiateSocketCallBack){
-            val channelAuthorizer = HttpChannelAuthorizer("${Constants.ENDPOINT}auth/pusher?access-token=${Constants.AUTH}")
-            val options = PusherOptions().setCluster("eu").setChannelAuthorizer(channelAuthorizer)
-            pusher = Pusher(params.pusherAppKey, options)
-
-            pusher!!.connect(object : ConnectionEventListener {
-                override fun onConnectionStateChange(change: ConnectionStateChange) {
-                    println("Connection state changed to ${change.currentState}")
-                    if (change.currentState == ConnectionState.CONNECTED) {
-                        // Handle successful connection
-                        callBack.onConnect("connected")
-                        println("im in this if change.currentState == ConnectionState.CONNECTED")
-                    }
-                }
-
-                override fun onError(message: String, code: String, e: Exception) {
-                    callBack.onError(message)
-                    println("Error: $message")
-                    e.printStackTrace()
-                }
-            }, ConnectionState.ALL)
-
-            val channel: PrivateChannel = pusher!!.subscribePrivate(params.pusherChannel, object :
-                PrivateChannelEventListener {
-                override fun onEvent(event: PusherEvent?) {
-                    println("onEvent event name 1 ${event?.data}")
-                }
-                override fun onAuthenticationFailure(message: String?, e: java.lang.Exception?) {
-                    println("onAuthenticationFailure message 1 $message")
-                }
-                override fun onSubscriptionSucceeded(channelName: String) {}
-            })
-            channel.bind("call-status", object : PrivateChannelEventListener {
-                override fun onAuthenticationFailure(message: String, e: Exception) {
-                    println("message is -> $message")
-                }
-                override fun onEvent(event: PusherEvent?) {
-                    val json = JSONObject(event?.data.toString())
-                    val status = json.getString("status")
-                    println("status is -> $status" );
-                    callBack.onStatusChange(status)
-                }
-                override fun onSubscriptionSucceeded(channelName: String) {
-                    println("channelName -> $channelName")
-                }
-            })
+        if(url.isNullOrEmpty()){
+            throw IOException("baseUrl is missing or invalid.")
         }
+        if(channelName.isEmpty()){
+            throw IOException("channelName is missing or invalid.")
+        }
+        if(appKey.isEmpty()){
+            throw IOException("appKey is missing or invalid.")
+        }
+        val authEndPoint = "${url}/v1/auth/pusher?access-token=${token}"
+        val options = PusherOptions();
+        val channelAuthorizer = HttpChannelAuthorizer(authEndPoint);
+        options.setCluster("eu")
+        options.isUseTLS = true
+        options.maxReconnectionAttempts = 10
+        options.channelAuthorizer = channelAuthorizer
+        pusher = Pusher(appKey, options)
+        pusher!!.connect(object : ConnectionEventListener {
+            override fun onConnectionStateChange(change: ConnectionStateChange) {
+                connectionCallback.onConnectionStateChange(
+                    previousState = change.previousState.toString() ,
+                    currentState = change.currentState.toString() ,
+                )
+            }
+            override fun onError(message: String, code: String?, e: Exception?) {
+                connectionCallback.onError(message,code,e)
+            }
+        })
+        channel = pusher!!.subscribePrivate(channelName, object :
+            PrivateChannelEventListener {
+            override fun onEvent(event: PusherEvent?) {
+                val json = JSONObject(event?.data.toString())
+                subscribeCallback.onEvent(json)
+            }
+            override fun onAuthenticationFailure(message: String?, e: Exception?) {
+                subscribeCallback.onAuthenticationFailure(message,e)
+            }
+            override fun onSubscriptionSucceeded(channelName: String) {
+                subscribeCallback.onSubscriptionSucceeded(channelName)
+            }
+        })
+    }
+    fun unsubscribe( channelName: String){
+        if(pusher != null){
+            pusher!!.unsubscribe(channelName)
+        }
+    }
+    fun disconnect(){
+        if(pusher != null){
+            pusher!!.disconnect()
+        }
+    }
+    fun subscribe(eventName : String , subscribeCallback : TBISubscribeEventListener){
+        channel?.bind(eventName, object : PrivateChannelEventListener {
+            override fun onEvent(event: PusherEvent?) {
+                val json = JSONObject(event?.data.toString())
+                val status = json.getString("status")
+                subscribeCallback.onEvent(json)
+            }
+            override fun onAuthenticationFailure(message: String?, e: Exception?) {
+                subscribeCallback.onAuthenticationFailure(message,e)
+            }
+            override fun onSubscriptionSucceeded(channelName: String) {
+                subscribeCallback.onSubscriptionSucceeded(channelName)
+            }
+        })
     }
 }

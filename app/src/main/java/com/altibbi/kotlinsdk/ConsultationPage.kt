@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.ArrayAdapter
@@ -18,19 +19,27 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.altibbi.telehealth.ApiCallback
+import com.altibbi.telehealth.Media
+import com.altibbi.telehealth.Medium
 import com.altibbi.telehealth.ApiService
 import com.altibbi.telehealth.Consultation
 import com.altibbi.telehealth.TBISocket
+import okhttp3.Response
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
 
 
 class ConsultationPage : AppCompatActivity() {
     private lateinit var galleryActivityResultLauncher: ActivityResultLauncher<Intent>
+    private val apiService = ApiService()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_consultation_page)
         val spinner = findViewById<Spinner>(R.id.spinner1)
-
         val values = listOf("chat", "gsm", "video", "voip")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, values)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -85,36 +94,70 @@ class ConsultationPage : AppCompatActivity() {
     }
 
     private fun getLastConsultation(){
-        ApiService.getLastConsultation(object : Consultation.GetLastConsultationCallback{
-            override fun onSuccess(response: Consultation.ConsultationResponse) {
+        apiService.getLastConsultation(object : ApiCallback<Consultation> {
+            override fun onSuccess(response: Consultation) {
+                println("getLastConsultation response: $response")
                 if (response.status == "new" || response.status == "in_progress"){
                     val intent = Intent(applicationContext, WaitingRoom::class.java)
                     startActivity(intent)
                 }
             }
-            override fun onError(error: Any) {
+
+            override fun onFailure(error: String?) {
+                println("$error")
             }
 
-        })
+            override fun onRequestError(error: String?) {
+                println("$error")
+            }
 
+
+        })
     }
 
     private fun getPrescriptionFun( context: Context) {
-        println("context is -> ${context.packageName}")
         val consultationToGet: EditText = findViewById(R.id.textInputEditText15)
         val id: String = consultationToGet.text.toString()
 
-        ApiService.getPrescription(id, context, object : Consultation.DownloadPrescriptionCallback {
-            override fun onSuccess(filePath: String) {
-                println("filePath in onSuccess -> $filePath")
+        apiService.getPrescription(id, object : ApiCallback<Response> {
+            override fun onSuccess(response: Response) {
+                val inputStream = response.body?.byteStream()
+                if (inputStream != null) {
+                    savePdfToFile(inputStream, "newPDF_231.pdf")
+                }
             }
-
-            override fun onError(errorMessage: String) {
-                println("errorMessage is -> $errorMessage")
+            override fun onFailure(error: String?) {
+                println("onFailure error: $error")
+            }
+            override fun onRequestError(error: String?) {
             }
         })
     }
 
+    private fun savePdfToFile(inputStream: InputStream, fileName: String): File {
+        val downloadDirectory =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val downloadPath = downloadDirectory.absolutePath
+        val outputFile = File(downloadPath, fileName)
+        try {
+            if (!outputFile.exists()) {
+                outputFile.createNewFile()
+            }
+            FileOutputStream(outputFile).use { outputStream ->
+                val buffer = ByteArray(4 * 1024) // Adjust buffer size as needed
+                var read: Int
+                while (inputStream.read(buffer).also { read = it } != -1) {
+                    outputStream.write(buffer, 0, read)
+                }
+                outputStream.flush()
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } finally {
+            inputStream.close()
+        }
+        return outputFile
+    }
 
 
     private fun uriToFile(uri: Uri): File? {
@@ -134,33 +177,28 @@ class ConsultationPage : AppCompatActivity() {
         Log.d("ImagePicker", "handleGalleryResult called")
         if (resultCode == Activity.RESULT_OK) {
             val imageUri: Uri? = data?.data
-            println("imageUri is -> $imageUri")
 
             if (imageUri != null) {
                 val imageFile: File? = uriToFile(imageUri)
 
                 if (imageFile != null && imageFile.exists()) {
-                    println("imageFile is $imageFile")
-
                     if (ContextCompat.checkSelfPermission(
                             this,
                             Manifest.permission.READ_EXTERNAL_STORAGE
                         ) == PackageManager.PERMISSION_GRANTED
                     ){
-                        ApiService.uploadMedia(imageFile, object :
-                            Consultation.UploadCallback {
-                            override fun onSuccess(response: Consultation.UploadMediaResponse) {
-                                println("uploadMedia response is -> $response")
-                                if(response is Consultation.UploadMediaResponse){
-                                    println("uploadMedia response all data is is -> $response")
-                                }
-                            }
 
-                            override fun onError(error: Any) {
-                                println("uploadMedia error Any is -> $error")
+                        apiService.uploadMedia(imageFile, object : ApiCallback<Media> {
+                            override fun onSuccess(response: Media) {
+                                println("uploadMedia onSuccess : $response")
+                            }
+                            override fun onFailure(error: String?) {
+                                println(error)
+                            }
+                            override fun onRequestError(error: String?) {
+                                println(error)
                             }
                         })
-
                     } else{
                         ActivityCompat.requestPermissions(
                             this,
@@ -180,40 +218,41 @@ class ConsultationPage : AppCompatActivity() {
     }
 
     private fun getConsultationListFun() {
-        ApiService.getConsultationList(object : Consultation.GetConsultationListCallBack{
-            override fun onSuccess(response: List<Consultation.ConsultationResponse>) {
-                println("getConsultationList all data is  -> $response")
+        val consultationCallback = object : ApiCallback<List<Consultation>> {
+            override fun onSuccess(response: List<Consultation>) {
+                println("Consultation.size ${response.size}")
             }
 
-            override fun onError(error: Any) {
-                println("getConsultationList error -> $error")
+            override fun onFailure(error: String?) {
+                println(error)
             }
-        })
+
+            override fun onRequestError(error: String?) {
+                println(error)
+            }
+
+
+        }
+        apiService.getConsultationList(callback = consultationCallback)
     }
 
 
     private fun getConsultation() {
         val consultationToGet: EditText = findViewById(R.id.textInputEditText4)
         val id: String = consultationToGet.text.toString()
-
-        ApiService.getConsultation(id, object : Consultation.GetConsultationByIdCallBack{
-            override fun onSuccess(response: Consultation.GetConsultationByIdResponse) {
-                if(response is Consultation.GetConsultationByIdResponse){
-                    println("GetConsultationByIdResponse all data is -> $response")
-                }
+        apiService.getConsultationInfo(id, object : ApiCallback<Consultation> {
+            override fun onSuccess(response: Consultation) {
+                println("get consultation info response is -> $response")
             }
 
-            override fun onError(error: Any) {
-                println("error is in GetConsultationByIdNotFoundResponse -> $error")
+            override fun onFailure(error: String?) {
+                println(error)
             }
 
-            override fun onErrorObj(error: Consultation.ConsultationNotFound) {
-                if(error is Consultation.ConsultationNotFound){
-                    println("error is in GetConsultationByIdNotFoundResponse 123 -> $error")
-                }
+            override fun onRequestError(error: String?) {
+                println(error)
             }
         })
-
     }
 
 
@@ -221,26 +260,19 @@ class ConsultationPage : AppCompatActivity() {
         val consultationId: EditText = findViewById(R.id.textInputEditText3)
         val id: String = consultationId.text.toString()
 
-        ApiService.cancelConsultation(
-            id,
-            object : Consultation.CancelConsultationCallBack{
-                override fun onSuccess(response: Consultation.CancelConsultationResponse){
-                    println("Cancel Consultation Response not all data -> $response")
-                    if(response is Consultation.CancelConsultationResponse){
-                        println("Cancel Consultation Response all data is -> $response")
-                    }
-                }
-                override fun onError(error: Any ) {
-                    println("Received Error Any in callback cancelConsultationFun: $error")
-                }
-
-                override fun onErrorObj(error: Consultation.ConsultationNotFound){
-                    if (error is Consultation.ConsultationNotFound){
-                        println("error all data in onErrorObj is -> $error")
-                    }
-                }
+        apiService.cancelConsultation(id, object : ApiCallback<Boolean> {
+            override fun onSuccess(response: Boolean) {
+                println("cancelConsultation response: $response")
             }
-        )
+
+            override fun onFailure(error: String?) {
+                println(error)
+            }
+
+            override fun onRequestError(error: String?) {
+                println(error)
+            }
+        })
     }
 
 
@@ -254,28 +286,30 @@ class ConsultationPage : AppCompatActivity() {
 
         val textInputEditText: EditText = findViewById(R.id.textInputEditText)
         val parentConsId: EditText = findViewById(R.id.textInputEditText6)
-        val parentConsultationId = parentConsId.text.toString().toIntOrNull()
 
-        val consultationParams = Consultation.ConsultationData(
+//        mediaIDs = arrayOf("c8617c16-98ef-11ee-9bc6-9600009a97a9"),
+
+        apiService.createConsultation(
             question = textInputEditText.text.toString(),
-            medium = "chat",//(spinner.selectedItem as String),
+            medium = Medium.chat,
             userID = 64,
-//            mediaIDs = arrayOf("c8617c16-98ef-11ee-9bc6-9600009a97a9"),
-            followUpId = parentConsultationId
-        )
-        ApiService.createConsultation(
-            consultationParams,
-            object : Consultation.CreateConsultationCallback {
-                override fun onSuccess(response: Consultation.ConsultationResponse) {
-                    println("Received response in callback createConsultation: $response")
-                    if(response is Consultation.ConsultationResponse){
-                        println("Received response in callback createConsultation all data is :${response}")
+            mediaIDs = null,
+            followUpId = parentConsId.text.toString(),
+            object : ApiCallback<Consultation> {
+                override fun onSuccess(response: Consultation) {
+                    println("createConsultation response is -> $response")
+                    if(response.status == "new"){
                         val intent = Intent(applicationContext, WaitingRoom::class.java)
                         startActivity(intent)
                     }
                 }
-                override fun onError(error: Any) {
-                    println("Received Error in callback createConsultation: $error")
+
+                override fun onFailure(error: String?) {
+                    println(error)
+                }
+
+                override fun onRequestError(error: String?) {
+                    println(error)
                 }
             }
         )
@@ -284,13 +318,18 @@ class ConsultationPage : AppCompatActivity() {
     private fun deleteConsultationFun() {
         val deleteConsId: EditText = findViewById(R.id.textInputEditText5)
         val id: String = deleteConsId.text.toString()
-        ApiService.deleteConsultation(id, object : Consultation.DeleteConsultationCallBack{
-            override fun onSuccess(response: Any) {
-                println("deleteConsultation onSuccess response is -> $response")
+
+        apiService.deleteConsultation(id, object : ApiCallback<Boolean> {
+            override fun onSuccess(response: Boolean) {
+                println("deleteConsultation response: $response")
             }
 
-            override fun onError(error: Any) {
-                println("deleteConsultation onError response is -> $error")
+            override fun onFailure(error: String?) {
+                println(error)
+            }
+
+            override fun onRequestError(error: String?) {
+                println(error)
             }
         })
     }

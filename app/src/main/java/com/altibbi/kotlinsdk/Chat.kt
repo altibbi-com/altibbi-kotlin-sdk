@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.altibbi.telehealth.AltibbiChat
+import com.altibbi.telehealth.ApiCallback
 import com.altibbi.telehealth.ApiService
 import com.altibbi.telehealth.Consultation
 import com.sendbird.android.BaseChannel
@@ -28,6 +29,7 @@ class Chat : AppCompatActivity() {
     var currentChannel: GroupChannel? = null
     private lateinit var messageAdapter: MessageAdapter
     private lateinit var recyclerView: RecyclerView
+    private val apiService = ApiService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +47,7 @@ class Chat : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         if (consultationId != null) {
-            getConsultation(this,this, consultationId)
+            getConsultation(this, consultationId)
             cancelConsultationButton.setOnClickListener{
                 cancelConsultation(consultationId)
             }
@@ -96,20 +98,20 @@ class Chat : AppCompatActivity() {
         AltibbiChat.addChannelHandler("myChannelHandler",channelHandler)
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        val channelHandler = MyChannelHandler(
-            activity = this,
-            onChannelMessageReceived = { message: BaseMessage ->
-                runOnUiThread {
-                    messageAdapter.addMessage(message)
-                    scrollToLastMessage()
-                }
-            }
-        )
-        AltibbiChat.addChannelHandler("myChannelHandler",channelHandler)
-    }
+//    override fun onResume() {
+//        super.onResume()
+//
+//        val channelHandler = MyChannelHandler(
+//            activity = this,
+//            onChannelMessageReceived = { message: BaseMessage ->
+//                runOnUiThread {
+//                    messageAdapter.addMessage(message)
+//                    scrollToLastMessage()
+//                }
+//            }
+//        )
+//        AltibbiChat.addChannelHandler("myChannelHandler",channelHandler)
+//    }
 
     class MessageAdapter(private val scrollToLastMessage: () -> Unit) : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
         private val messages: MutableList<BaseMessage> = mutableListOf()
@@ -171,42 +173,41 @@ class Chat : AppCompatActivity() {
         }
     }
 
-    private fun getConsultation(activity: Activity ,context: Context, response: String) {
-        ApiService.getConsultation(response, object : Consultation.GetConsultationByIdCallBack {
-            override fun onSuccess(response: Consultation.GetConsultationByIdResponse) {
-                if (response is Consultation.GetConsultationByIdResponse) {
-                    response.chatConfig.appId?.let { response.chatConfig.chatUserId?.let { it1 ->
-                        AltibbiChat.init(it, context, it1, response.chatConfig.chatUserToken!!)
-                        AltibbiChat.getChannel("channel_${response.chatConfig.groupId}", object :
-                            AltibbiChat.Companion.ChannelCallback {
-                            override fun onChannelReceived(channel: GroupChannel?) {
-                                currentChannel = channel
-                                currentChannel?.createPreviousMessageListQuery()?.load(100, false, object : MessageListQueryResult{
-                                    override fun onResult(
-                                        p0: MutableList<BaseMessage>?,
-                                        p1: SendBirdException?
-                                    ) {
-                                        p0?.let { messageAdapter.addMessages(it) }
-                                    }
-                                })
-                            }
-                        })
+    private fun getConsultation(context: Context, consId: String) {
 
-                    } }
-                }
+        apiService.getConsultationInfo(consId, object : ApiCallback<Consultation> {
+            override fun onSuccess(response: Consultation) {
+                println("get consultation info response is -> $response")
+                response.chatConfig?.appId?.let { response.chatConfig!!.chatUserId?.let { it1 ->
+                    AltibbiChat.init(it, context, it1, response.chatConfig!!.chatUserToken!!)
+                    AltibbiChat.getChannel("channel_${response.chatConfig!!.groupId}", object :
+                        AltibbiChat.Companion.ChannelCallback {
+                        override fun onChannelReceived(channel: GroupChannel?) {
+                            currentChannel = channel
+                            currentChannel?.createPreviousMessageListQuery()?.load(100, false, object : MessageListQueryResult{
+                                override fun onResult(
+                                    p0: MutableList<BaseMessage>?,
+                                    p1: SendBirdException?
+                                ) {
+                                    p0?.let { messageAdapter.addMessages(it) }
+                                }
+                            })
+                        }
+                    })
+
+                } }
             }
 
-            override fun onError(error: Any) {
-                println("error is in GetConsultationByIdNotFoundResponse -> $error")
+            override fun onFailure(error: String?) {
+                println(error)
             }
 
-            override fun onErrorObj(error: Consultation.ConsultationNotFound) {
-                if (error is Consultation.ConsultationNotFound) {
-                    println("error is in GetConsultationByIdNotFoundResponse 123 -> $error")
-                }
+            override fun onRequestError(error: String?) {
+                println(error)
             }
+
+
         })
-
     }
 
     private fun scrollToLastMessage() {
@@ -217,27 +218,21 @@ class Chat : AppCompatActivity() {
     }
 
     private fun cancelConsultation(id: String){
-        ApiService.cancelConsultation(
-            id,
-            object : Consultation.CancelConsultationCallBack{
-                override fun onSuccess(response: Consultation.CancelConsultationResponse){
-                    if(response is Consultation.CancelConsultationResponse){
-                        println("Cancel Consultation Response all data is -> $response")
-                        finish()
-                    }
-                }
-                override fun onError(error: Any ) {
-                    println("Received Error Any in callback cancelConsultationFun: $error")
-                }
 
-                override fun onErrorObj(error: Consultation.ConsultationNotFound){
-                    if (error is Consultation.ConsultationNotFound){
-                        println("error all data in onErrorObj is -> $error")
-                    }
+        apiService.cancelConsultation(id, object : ApiCallback<Boolean> {
+            override fun onSuccess(response: Boolean) {
+                println("cancelConsultation response : $response")
+                if (response){
+                    finish()
                 }
             }
-        )
-
+            override fun onFailure(error: String?) {
+                println(error)
+            }
+            override fun onRequestError(error: String?) {
+                println(error)
+            }
+        })
     }
 }
 

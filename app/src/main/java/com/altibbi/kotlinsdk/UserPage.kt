@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
+import com.altibbi.telehealth.ApiCallback
 import com.altibbi.telehealth.ApiService
 import com.altibbi.telehealth.User
 
@@ -15,20 +16,24 @@ class UserPage : AppCompatActivity() {
         val getUserIdButton = findViewById<Button>(R.id.button4);
         val textInputEditText: EditText = findViewById(R.id.textInputEditText2)
 
+        val apiService = ApiService()
+
         getUserIdButton.setOnClickListener{
             val userId = textInputEditText.text.toString()
-            ApiService.getUser(userId, object : User.GetUserCallback{
-                override fun onSuccess(response: User.UserResponse) {
-                    if(response is User.UserResponse){
-                        println("Received response in callback getPhrById all data is: $response")
-                    }
-                }
+           apiService.getUser(userId,   object : ApiCallback<User> {
+               override fun onSuccess(response: User) {
+                   println("Successful response: ${response.name}")
+                   println("Successful response: ${response.id}")
+               }
 
-                override fun onError(error: Any) {
-                    println("getUser Error all data : $error")
+               override fun onFailure(error: String?) {
+                   println(error)
+               }
 
-                }
-            })
+               override fun onRequestError(error: String?) {
+                   println(error)
+               }
+           })
         }
 
         val updateUserButton = findViewById<Button>(R.id.button6);
@@ -42,7 +47,8 @@ class UserPage : AppCompatActivity() {
         val gender: EditText = findViewById(R.id.textInputEditText22)
 
         updateUserButton.setOnClickListener{
-            val updateUserData = User.UpdateUserData(
+
+            val user = User(
                 name = userName.text.toString(),
                 email = email.text.toString(),
                 dateOfBirth = null,
@@ -59,30 +65,38 @@ class UserPage : AppCompatActivity() {
                 id = id.text.toString()
             )
 
-            println("userParams before call api -> $updateUserData")
-            ApiService.updateUser(updateUserData, object : User.UpdateUserCallback{
-                override fun onSuccess(response: User.UserResponse) {
-                    if (response is User.UserResponse){
-                        println("response obj is $response")
-                    }
+            println("update user data -> $user")
+            apiService.updateUser(user,user.id,object : ApiCallback<User> {
+                override fun onSuccess(response: User) {
+                    println("Successful response: ${response.name}")
+                    println("Successful response: ${response.id}")
                 }
 
-                override fun onError(error: Any) {
-                    println("error in example is $error")
+                override fun onFailure(error: String?) {
+                    println(error)
+                }
+
+                override fun onRequestError(error: String?) {
+                    println(error)
                 }
             })
         }
 
         val getAllUsersButton = findViewById<Button>(R.id.button10);
+
         getAllUsersButton.setOnClickListener{
-            ApiService.getUsers(object : User.GetUsersCallback{
-                override fun onSuccess(response: List<User.UserResponse>) {
-                    println("all users response is -> $response")
+            apiService.getUsers(object : ApiCallback<List<User>> {
+                override fun onSuccess(response: List<User>) {
+                    println("Successful response: ${response[5].id}")
+                }
+                override fun onFailure(error: String?) {
+                    println(error)
                 }
 
-                override fun onError(error: Any) {
-                    println("all users error is -> $error")
+                override fun onRequestError(error: String?) {
+                    println(error)
                 }
+
             })
         }
 
@@ -91,20 +105,25 @@ class UserPage : AppCompatActivity() {
 
         deleteUserButton.setOnClickListener{
             val id = deleteUserId.text.toString()
-            ApiService.deleteUser(id, object : User.DeleteUserCallBack{
-                override fun onSuccess(response: Any?) {
-                    println("response in onSuccess -> $response")
+            apiService.deleteUser(id, object : ApiCallback<Boolean> {
+                override fun onSuccess(response: Boolean) {
                 }
-                override fun onError(error: Any) {
-                    println("error in deleteUser onError -> $error")
+
+                override fun onFailure(error: String?) {
+                    println(error)
                 }
+
+                override fun onRequestError(error: String?) {
+                    println(error)
+                }
+
             })
         }
 
 
         val createUserButton = findViewById<Button>(R.id.button12);
         createUserButton.setOnClickListener{
-            val createUserData = User.CreateUserData(
+            val user = User(
                 name = userName.text.toString(),
                 email = email.text.toString(),
                 dateOfBirth = null,
@@ -117,18 +136,22 @@ class UserPage : AppCompatActivity() {
                 smoker = null,
                 alcoholic = null,
                 nationalityNumber = null,
-                maritalStatus = null
+                maritalStatus = null,
+                id = id.text.toString()
             )
 
-            ApiService.createUser(createUserData, object : User.CreateUserCallBack{
-                override fun onSuccess(response: User.UserResponse) {
-                    if (response is User.UserResponse){
-                        println("createUser response all data is  -> $response")
-                    }
+            apiService.createUser(user, object : ApiCallback<User> {
+                override fun onSuccess(response: User) {
+                    println("Successful response: ${response.name}")
+                    println("Successful response: ${response.id}")
                 }
 
-                override fun onError(error: Any) {
-                    println("createUser error in example is  -> $error")
+                override fun onFailure(error: String?) {
+                    println(error)
+                }
+
+                override fun onRequestError(error: String?) {
+                    println(error)
                 }
             })
         }

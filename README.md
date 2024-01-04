@@ -11,18 +11,18 @@ project.
 #### Initialize the Altibbi service with the user token and partner endpoint as follows:
 Note: Be sure to replace placeholders `"USER_TOKEN"` and `"PARTNER_ENDPOINT"` with your actual values.
 
-```dart
+```kotlin
 AltibbiService.init(
-    token: "USER_TOKEN",
-    baseUrl: "PARTNER_ENDPOINT",
-    language: "Language", // 'ar' || 'en'
-);
+    token = "USER_TOKEN",
+    baseUrl = "PARTNER_ENDPOINT",
+    language = "Language" // 'ar' || 'en'
+)
 ```
 
 ### After Initialize Altibbi Service You Can Use Altibbi API :
 #### Using the API Service:
-```dart
-ApiService apiService = ApiService();
+```kotlin
+val apiService = ApiService()
 ```
 
 ### User API
@@ -31,48 +31,111 @@ ApiService apiService = ApiService();
 
 You Have To Pass User Object
 
-```dart
-User user =  User(name: "user_name");
-var users = await apiService.createUser(user);
+```kotlin
+val user =  User(name = "user_name", email = "example@gmail.com")
+apiService.createUser(user, object : ApiCallback<User> {
+    override fun onSuccess(response: User) {
+    }
+
+    override fun onFailure(error: String?) {
+    }
+
+    override fun onRequestError(error: String?) {
+    }
+})
 ```
 
 #### Get User Info By ID :
 
-```dart
-var user = await apiService.getUser(user_id);
+```kotlin
+apiService.getUser(userId, object : ApiCallback<User> {
+    override fun onSuccess(response: User) {
+        // Response is User info
+    }
+
+    override fun onFailure(error: String?) {
+    }
+
+    override fun onRequestError(error: String?) {
+    }
+})
 ```
 
 #### Users List Related To Member :
 
 you can pass page && perPage defaults 1 && 20
 
-```dart
-var users = await apiService.getUsers(perPage: 20, page: 1);
+```kotlin
+apiService.getUsers(object : ApiCallback<List<User>> {
+    override fun onSuccess(response: List<User>) {
+        // Response is Users list
+    }
+    override fun onFailure(error: String?) {
+    }
+
+    override fun onRequestError(error: String?) {
+    }
+
+})
+
 ```
 
 #### Update User Info :
 
-```dart
-var user = await apiService.updateUser(new_user_info , user_id);
+```kotlin
+val user =  User(name = "user_name", email = "example@gmail.com", id = 1)
+apiService.updateUser(user,user.id,object : ApiCallback<User> {
+    override fun onSuccess(response: User) {
+    }
+
+    override fun onFailure(error: String?) {
+    }
+
+    override fun onRequestError(error: String?) {
+    }
+})
+
 ```
 
 #### Delete User :
 
-```dart
-var user = await apiService.deleteUser(user_id);
+```kotlin
+ apiService.deleteUser(id, object : ApiCallback<Boolean> {
+    override fun onSuccess(response: Boolean) {
+        // Response = True means User is deleted 
+    }
+
+    override fun onFailure(error: String?) {
+    }
+
+    override fun onRequestError(error: String?) {
+    }
+
+})
 ```
 
 ### Consultation API
 
 #### Create Consultation :
 
-```dart
-var consultation = await apiService.createConsultation(
-      question: "user_question",
-      medium:  Medium.chat, // there are 4 type of medium (chat,voip,video,gsm)
-      userID: 1, //Assigning consultation to User ID
-      mediaIDs: media // image,pdf .. 
-  );
+```kotlin
+apiService.createConsultation(
+    question = "YOUR QUESTION",
+    medium = Medium.chat, // chat, voip, video, gsm
+    userID = 64, 
+    mediaIDs = null,
+    followUpId = parentConsId.text.toString(),
+    object : ApiCallback<Consultation> {
+        override fun onSuccess(response: Consultation) {
+        }
+
+        override fun onFailure(error: String?) {
+        }
+
+        override fun onRequestError(error: String?) {
+        }
+    }
+)
 ```
 
 #### Note That You Can Pass "followUpId" In Case Consultation Is FollowUpConsultation
@@ -81,32 +144,89 @@ var consultation = await apiService.createConsultation(
 
 you can pass page && perPage defaults 1 && 20
 
-```dart
-var consultationList = await apiService.getConsultationList(page: 1, perPage: 30);
+```kotlin
+ val consultationCallback = object : ApiCallback<List<Consultation>> {
+    override fun onSuccess(response: List<Consultation>) {
+    }
+
+    override fun onFailure(error: String?) {
+    }
+
+    override fun onRequestError(error: String?) {
+    }
+ }
+apiService.getConsultationList(callback = consultationCallback)
+
 ```
 
 #### Consultation Info By ID :
 
-```dart
-var consultation = await apiService.getConsultationInfo(consultation_id);
+```kotlin
+apiService.getConsultationInfo(id, object : ApiCallback<Consultation> {
+    override fun onSuccess(response: Consultation) {
+        // Response is the Consultation info
+    }
+
+    override fun onFailure(error: String?) {
+    }
+
+    override fun onRequestError(error: String?) {
+    }
+})
+
 ```
 
 #### Last Consultation Info :
 
-```dart
-var consultation = await apiService.getLastConsultation();
+```kotlin
+apiService.getLastConsultation(object : ApiCallback<Consultation> {
+    override fun onSuccess(response: Consultation) {
+        // Response is the last consultation info
+    }
+
+    override fun onFailure(error: String?) {
+    }
+
+    override fun onRequestError(error: String?) {
+    }
+
+
+})
+
 ```
 
 #### Delete Consultation :
 
-```dart
-var value = await apiService.deleteConsultation(consultation_id);
+```kotlin
+apiService.deleteConsultation(id, object : ApiCallback<Boolean> {
+    override fun onSuccess(response: Boolean) {
+        // Response = True means Consultation is deleted
+    }
+
+    override fun onFailure(error: String?) {
+    }
+
+    override fun onRequestError(error: String?) {
+    }
+})
+
 ```
 
 #### Cancel Consultation :
 
-```dart
-var cancelValue = await apiService.cancelConsultation(consultation_id);
+```kotlin
+apiService.cancelConsultation(id, object : ApiCallback<Boolean> {
+    override fun onSuccess(response: Boolean) {
+        // Response = True means Consultation is canceled
+    }
+
+    override fun onFailure(error: String?) {
+    }
+
+    override fun onRequestError(error: String?) {
+    }
+})
+
 ```
 
 ### Prescription API
@@ -114,107 +234,185 @@ var cancelValue = await apiService.cancelConsultation(consultation_id);
 #### download the Prescription 
 note : if the prescription for the consultation is generated it will return else it will be null 
 
-```dart
-var prescriptionPath = await apiService.getPrescription(consultation_id,path_to_save_the_file);
+```kotlin
+apiService.getPrescription(id, object : ApiCallback<Response> {
+    override fun onSuccess(response: Response) {
+        val inputStream = response.body?.byteStream()
+        if (inputStream != null) {
+            // if its not equal null you can save the PDF to your files 
+        }
+    }
+    override fun onFailure(error: String?) {
+    }
+    override fun onRequestError(error: String?) {
+    }
+})
+
 ```
 
 ### Media API
 
 #### Upload Media That Can Be Used In Consultation (Image , PDF)
 
-```dart
-var media = await apiService.uploadMedia(image);
+```kotlin
+apiService.uploadMedia(imageFile, object : ApiCallback<Media> {
+    override fun onSuccess(response: Media) {
+    }
+    override fun onFailure(error: String?) {
+    }
+    override fun onRequestError(error: String?) {
+    }
+})
+
 ```
 ### Use Pusher Service To Listen To Consultation Event
 
 #### Initializing the Pusher Service:
 
-```dart
-Pusher().init(
-  onEvent: onEvent, 
-  channelName: "pusher_channel_name", // retrun from the consultation api
-  apiKey: "pusher_api_key" // retrun from the consultation api
-);
+```kotlin
+socket.init(
+    channelName = response.socketChannel!!,
+    appKey = response.appKey!!,
+    connectionCallback = object : TBISocketEventListener {
+        override fun onConnectionStateChange(
+            previousState: String?,
+            currentState: String?
+        ) {
+            if(currentState == "CONNECTED"){
+            }
+        }
+        override fun onError(
+            message: String,
+            code: String?,
+            e: Exception?
+        ) {
+        }
+    },
+    subscribeCallback = object : TBISubscribeEventListener {
+        override fun onEvent(event: JSONObject) {
+        }
+        override fun onAuthenticationFailure(
+            message: String?,
+            e: Exception?
+        ) {
+        }
+        override fun onSubscriptionSucceeded(channelName: String) {
+        }
+    }
+)
+
 ```
 
 #### You Can Listen To Event Using Funtion "onEvent" Passed In Pusher().init :
 
-```dart
-void onEvent(event) async {
-  print("event Name = " + event.eventName);
-}
+```kotlin
+socket.subscribe("call-status", object : TBISubscribeEventListener { // call-status its the Event name 
+    override fun onEvent(event: JSONObject) {
+        val status = event.getString("status")
+        if (status == "in_progress"){
+        }else if (status == "closed"){
+        }
+    }
+    override fun onAuthenticationFailure(
+        message: String?,
+        e: Exception?
+    ) {
+        print("onAuthenticationFailure $message")
+    }
+    override fun onSubscriptionSucceeded(channelName: String) {
+        println("onSubscriptionSucceeded 1$channelName")
+    }
+})
+
 ```
 
 ### Initializing the Video Service && Granted Permission :
 
-```dart
-
- late VideoConfig _config;
- VideoController? _controller;
-  
-  
- Future<void> initPlatformState() async {
-    _config = VideoConfig(
-      apiKey: "apikey",// Get This From The Pusher Event
-      sessionId: "sessionId",// Get This From The Pusher Event
-      token: "token",// Get This From The Pusher Event
-    );
-
-    _controller = VideoController();
-
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      Map<Permission, PermissionStatus> statuses = await [
-        Permission.camera,
-        Permission.microphone,
-      ].request();
-      final isGranted =
-          statuses[Permission.camera] == PermissionStatus.granted &&
-              statuses[Permission.microphone] == PermissionStatus.granted;
-      if (isGranted) {
-     
-        _controller?.initSession(_config);
-        if(widget.voip){
-          await Future.delayed(const Duration(seconds: 3), () {
-            videoControl(true);
-          });
-        }
-      } else {
-        debugPrint(
-            "Camera or Microphone permission or both denied by the user!");
-      }
-    });
-  }
+```kotlin
+//
+// late VideoConfig _config;
+// VideoController? _controller;
+//  
+//  
+// Future<void> initPlatformState() async {
+//    _config = VideoConfig(
+//      apiKey: "apikey",// Get This From The Pusher Event
+//      sessionId: "sessionId",// Get This From The Pusher Event
+//      token: "token",// Get This From The Pusher Event
+//    );
+//
+//    _controller = VideoController();
+//
+//    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+//      Map<Permission, PermissionStatus> statuses = await [
+//        Permission.camera,
+//        Permission.microphone,
+//      ].request();
+//      final isGranted =
+//          statuses[Permission.camera] == PermissionStatus.granted &&
+//              statuses[Permission.microphone] == PermissionStatus.granted;
+//      if (isGranted) {
+//     
+//        _controller?.initSession(_config);
+//        if(widget.voip){
+//          await Future.delayed(const Duration(seconds: 3), () {
+//            videoControl(true);
+//          });
+//        }
+//      } else {
+//        debugPrint(
+//            "Camera or Microphone permission or both denied by the user!");
+//      }
+//    });
+//  }
 ```
 
 ### Displaying Altibbi Video:
 Use VideoView Widget
-```dart
- VideoView(controller: _controller ?? VideoController()),
+```kotlin
+// VideoView(controller: _controller ?? VideoController()),
 ```
 
 
 
 ### Initializing Chat:
 Use AltibbiChat Widget
-```dart
- AltibbiChat().init(consultation: consultation);
+```kotlin
+AltibbiChat.init(it, context, it1, response.chatConfig!!.chatUserToken!!)
 ```
 
 
 
 ### Chat listeners:
 Assigning Chat listeners
-```dart
- AltibbiChat().addChannelHandler('myChannelHandler', channelHandler);
+```kotlin
+AltibbiChat.addChannelHandler("myChannelHandler",channelHandler)
+
 ```
 
 
 
 ### Sending Chat message:
 Sending a text Chat
-```dart
- GroupChannel groupChannels = await AltibbiChat().getGroupChannel(consultation);
- groupChannels.sendUserMessage(UserMessageCreateParams(message: message));
+```kotlin
+AltibbiChat.getChannel("channel_${response.chatConfig!!.groupId}", object :
+    AltibbiChat.Companion.ChannelCallback {
+    override fun onChannelReceived(channel: GroupChannel?) {
+        currentChannel = channel
+        currentChannel?.sendUserMessage(message, object : BaseChannel.SendUserMessageHandler {
+            override fun onSent(userMessage: UserMessage?, e: SendBirdException?) {
+                if (e == null) {
+                    userMessage?.let { messageAdapter.addMessage(it) }
+                    messageInput.text.clear()
+                    scrollToLastMessage()
+                } else {
+                    println("Error sending message: ${e.message}")
+                }
+            }
+        })
+
+    }
+})
 ```
 
 
@@ -223,7 +421,7 @@ Sending a text Chat
 An example Android application using the Altibbi SDK can be found in the `example` directory.
 
 Please see the `example` directory for a complete sample app using Altibbi Android SDK.
-```dart
+```kotlin
 1- Creating a consultation page
 2- Waiting room page
 3- Chat page page

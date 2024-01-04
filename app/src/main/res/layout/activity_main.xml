@@ -63,7 +63,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="92dp"
         android:hint="End Point"
-        android:text="https://tawuniya.altibb.com/v1/"
+        android:text="https://tawuniya.altibb.com"
         app:layout_constraintTop_toTopOf="parent"
         tools:layout_editor_absoluteX="1dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,111 +1,87 @@
 package com.altibbi.telehealth
 
+
 import com.google.gson.annotations.SerializedName
-
-class User {
-    data class UserResponse(
-        val id: Int,
-        val name: String,
-        @SerializedName("nationality_number") val nationalityNumber: String?,
-        val email: String?,
-        @SerializedName("date_of_birth") val dateOfBirth: String?,
-        val gender: String,
-        @SerializedName("insurance_id") val insuranceId: String?,
-        @SerializedName("policy_number") val policyNumber: String?,
-        val height: String?,
-        val weight: String?,
-        @SerializedName("blood_type") val bloodType: String?,
-        val smoker: String?,
-        val alcoholic: String?,
-        @SerializedName("marital_status") val maritalStatus: String?,
-        @SerializedName("created_at") val createdAt: String?,
-        @SerializedName("updated_at") val updatedAt: String?
+data class User(
+    var id: String? = null,
+    var name: String? = null,
+    @SerializedName("phone_number") var phoneNumber: String? = null,
+    var email: String? = null,
+    @SerializedName("date_of_birth") var dateOfBirth: String? = null,
+    var gender: String? = null,
+    @SerializedName("insurance_id") var insuranceId: String? = null,
+    @SerializedName("policy_number") var policyNumber: String? = null,
+    @SerializedName("nationality_number") var nationalityNumber: String? = null,
+    var height: Int? = null,
+    var weight: Int? = null,
+    @SerializedName("blood_type") var bloodType: String? = null,
+    var smoker: String? = null,
+    var alcoholic: String? = null,
+    @SerializedName("marital_status") var maritalStatus: String? = null,
+    @SerializedName("created_at") var createdAt: String? = null,
+    @SerializedName("updated_at") var updatedAt: String? = null
+) {
+    constructor(json: Map<String, Any>) : this(
+        id = json["id"] as? String?,
+        name = json["name"] as? String,
+        phoneNumber = json["phone_number"] as? String,
+        email = json["email"] as? String,
+        dateOfBirth = json["date_of_birth"] as? String,
+        gender = json["gender"] as? String,
+        insuranceId = json["insurance_id"] as? String,
+        policyNumber = json["policy_number"] as? String,
+        nationalityNumber = json["nationality_number"] as? String,
+        height = json["height"] as? Int,
+        weight = json["weight"] as? Int,
+        bloodType = json["blood_type"] as? String,
+        smoker = json["smoker"] as? String,
+        alcoholic = json["alcoholic"] as? String,
+        maritalStatus = json["marital_status"] as? String,
+        createdAt = json["created_at"] as? String,
+        updatedAt = json["updated_at"] as? String
     )
-
-    interface GetUserCallback {
-        fun onSuccess(response: UserResponse)
-        fun onError(error: Any)
+    companion object {
+        fun fromJson(json: Map<String, Any>): User {
+            return User(
+                json["id"] as? String,
+                json["name"] as? String,
+                json["phone_number"] as? String,
+                json["email"] as? String,
+                json["date_of_birth"] as? String,
+                json["gender"] as? String,
+                json["insurance_id"] as? String,
+                json["policy_number"] as? String,
+                json["nationality_number"] as? String,
+                json["height"] as? Int,
+                json["weight"] as? Int,
+                json["blood_type"] as? String,
+                json["smoker"] as? String,
+                json["alcoholic"] as? String,
+                json["marital_status"] as? String,
+                json["created_at"] as? String,
+                json["updated_at"] as? String
+            )
+        }
     }
-
-    interface DeleteUserCallBack{
-        fun onSuccess(response: Any?)
-        fun onError(response: Any)
-    }
-
-    interface GetUsersCallback {
-        fun onSuccess(response: List<UserResponse>)
-        fun onError(error: Any)
-    }
-
-    interface CreateUserCallBack{
-        fun onSuccess(response: UserResponse)
-        fun onError(response: Any)
-    }
-    data class CreateUserData(
-        val name: String?,
-        val email: String?,
-        @SerializedName("date_of_birth") val dateOfBirth: String?,
-        val gender: String?,
-        @SerializedName("insurance_id") val insuranceId: String?,
-        @SerializedName("policy_number") val policyNumber: String?,
-        @SerializedName("nationality_number") val nationalityNumber: String?,
-        val height: Int?,
-        val weight: Int?,
-        @SerializedName("blood_type") val bloodType: String?,
-        val smoker: String?,
-        val alcoholic: String?,
-        @SerializedName("marital_status") val maritalStatus: String?,
-    ) {
-        fun extractNonNullValues(): Map<String, Any?> = mapOf(
+    fun toJson(): Map<String, Any?> {
+        val jsonMap = mapOf(
             "name" to name,
             "email" to email,
             "date_of_birth" to dateOfBirth,
+            "gender" to gender,
             "insurance_id" to insuranceId,
             "policy_number" to policyNumber,
+            "nationality_number" to nationalityNumber,
             "height" to height,
             "weight" to weight,
-            "gender" to gender,
-            "smoker" to smoker,
             "blood_type" to bloodType,
-            "nationalityNumber" to nationalityNumber,
-            "alcoholic" to alcoholic
-        )
-    }
-
-    interface UpdateUserCallback {
-        fun onSuccess(response: UserResponse)
-        fun onError(error: Any)
-    }
-    data class UpdateUserData(
-        val id: String?,
-        val name: String?,
-        val email: String?,
-        @SerializedName("date_of_birth") val dateOfBirth: String?,
-        val gender: String?,
-        @SerializedName("insurance_id") val insuranceId: String?,
-        @SerializedName("policy_number") val policyNumber: String?,
-        @SerializedName("nationality_number") val nationalityNumber: String?,
-        val height: Int?,
-        val weight: Int?,
-        @SerializedName("blood_type") val bloodType: String?,
-        val smoker: String?,
-        val alcoholic: String?,
-        @SerializedName("marital_status") val maritalStatus: String?,
-    ) {
-        fun extractNonNullValues(): Map<String, Any?> = mapOf(
-            "name" to name,
-            "email" to email,
-            "date_of_birth" to dateOfBirth,
-            "insurance_id" to insuranceId,
-            "policy_number" to policyNumber,
-            "height" to height,
-            "weight" to weight,
-            "gender" to gender,
             "smoker" to smoker,
-            "blood_type" to bloodType,
-            "nationalityNumber" to nationalityNumber,
-            "alcoholic" to alcoholic
+            "alcoholic" to alcoholic,
+            "marital_status" to maritalStatus
         )
+        println("filtered data is -> ${
+            jsonMap.filterValues { it != null }
+        }")
+        return jsonMap.filterValues { it != null }
     }
-
 }

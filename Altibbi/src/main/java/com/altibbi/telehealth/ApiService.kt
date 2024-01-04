@@ -1,291 +1,357 @@
 package com.altibbi.telehealth
 
-import android.content.Context
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.*
 import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
-import java.io.File
 
+
+interface ApiCallback<T> {
+    fun onSuccess(response: T)
+    fun onFailure(error: String?)
+    fun onRequestError(error: String?)
+}
 class ApiService {
-    companion object {
-        private const val expandValues = "pusherAppKey,parentConsultation,consultations,user,media,pusherChannel,chatConfig,chatHistory,voipConfig,videoConfig,recommendation"
-        fun createConsultation(createConsultationRequest: Consultation.ConsultationData, callback: Consultation.CreateConsultationCallback) {
-            val params = mutableMapOf(
-                "question" to createConsultationRequest.question,
-                "medium" to createConsultationRequest.medium,
-                "user_id" to createConsultationRequest.userID,
-//                "media_ids" to  createConsultationRequest.mediaIDs
-            )
-
-//            params["media_ids"] = createConsultationRequest.mediaIDs
-
-            createConsultationRequest.followUpId?.let {
-                params["parent_consultation_id"] = it
+    private val okHttpClient = OkHttpClient()
+    private fun callApi(
+        endpoint: String,
+        method: String,
+        body: Map<String, Any?> = emptyMap(),
+        file: File? = null,
+        page: Int? = null,
+        perPage: Int? = null
+    ): Call {
+        val token = AltibbiService.authToken
+        val baseURL = AltibbiService.url
+        val lang = AltibbiService.lang
+        if (token == null) {
+            throw IOException("Token is missing or invalid.")
+        }
+        val url: String = when (method) {
+            "GET" -> {
+                val queryParameters = body.entries.associate { (key, value) ->
+                    key to value.toString()
+                }.toMutableMap()
+                if (perPage != null && page != null) {
+                    queryParameters["per-page"] = perPage.toString()
+                    queryParameters["page"] = page.toString()
+                }
+                "$baseURL/v1/$endpoint?${queryParameters.entries.joinToString("&") { "${it.key}=${it.value}" }}"
             }
-
-            createConsultationRequest.mediaIDs?.let { mediaIDs ->
-                val mediaIDsString = "[\"${mediaIDs.joinToString("\",\"")}\"]"
-                params["media_ids"] = mediaIDsString
-            }
-            println("params in createConsultation is - > $params")
-            NetworkRequest.ApiManager.postRequest("consultations?expand=$expandValues",
-                params, null, object : NetworkRequest.ApiManager.ApiCallback<Consultation.ConsultationResponse, Any>{
-                    override fun onSuccess(response: Consultation.ConsultationResponse) {
-                        println("create consultation success response $response")
-                        callback.onSuccess(response)
-                    }
-
-                    override fun onError(error: Any) {
-                        println("create consultation onError response $error")
-                        callback.onError(error)
-                    }
-                }, Consultation.ConsultationResponse::class.java)
+            else -> "$baseURL/v1/$endpoint"
         }
-
-
-        fun getPrescription(consultationId: String, context: Context, callback: Consultation.DownloadPrescriptionCallback) {
-            val params = null
-            NetworkRequest.ApiManager.getRequest("consultations/$consultationId/download-prescription",
-                params, true, object : NetworkRequest.ApiManager.ApiCallback<Any, Any> {
-                    override fun onSuccess(response: Any) {
-//                    callback.onSuccess(response)
-                    }
-
-                    override fun onError(error: Any) {
-//                    callback.onError(error)
-
-                    }
-                }, Any::class.java
-            )
+        val requestBuilder = Request.Builder()
+            .url(url)
+            .header("Authorization", "Bearer $token")
+            .header("accept-language", lang)
+        if (file != null) {
+            val requestBody = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart(
+                    "file",  // The key for the file field in the form
+                    file.name,  // The name of the file
+                    file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+                )
+                .build()
+            requestBuilder.post(requestBody)
+            val request: Request = requestBuilder.build()
+            return okHttpClient.newCall(request)
         }
-
-        fun cancelConsultation(consultationId: String, callback: Consultation.CancelConsultationCallBack){
-            val params = null
-            NetworkRequest.ApiManager.postRequest("consultations/$consultationId/cancel",
-                params, null, object : NetworkRequest.ApiManager.ApiCallback<Consultation.CancelConsultationResponse, Any>{
-                    override fun onSuccess(response: Consultation.CancelConsultationResponse) {
-                        callback.onSuccess(response)
-                    }
-
-                    override fun onError(error: Any) {
-                        callback.onError(error)
-                    }
-                }, Consultation.CancelConsultationResponse::class.java)
+        requestBuilder.header("Content-Type", "application/json")
+        val formBuilder = FormBody.Builder()
+        for ((key, value) in body) {
+            formBuilder.add(key, value.toString())
         }
-
-
-        fun getConsultation(consultationId: Any, callback: Consultation.GetConsultationByIdCallBack){
-            val params = null
-            NetworkRequest.ApiManager.getRequest("consultations/${consultationId}?expand=$expandValues",
-                params, false, object : NetworkRequest.ApiManager.ApiCallback<Consultation.GetConsultationByIdResponse, Any>{
-                    override fun onSuccess(response: Consultation.GetConsultationByIdResponse) {
-                        callback.onSuccess(response)
-                    }
-
-                    override fun onError(error: Any) {
-                        if(error is Consultation.ConsultationNotFound){
-                            callback.onErrorObj(error)
-                        } else{
-                            callback.onError(error)
-                        }
-                    }
-                }, Consultation.GetConsultationByIdResponse::class.java)
+        val requestBody: RequestBody = formBuilder.build()
+        when (method) {
+            "GET" -> requestBuilder.get()
+            "POST" -> requestBuilder.post(requestBody)
+            "PUT" -> requestBuilder.put(requestBody)
+            "DELETE" -> requestBuilder.delete()
         }
-
-
-        fun getLastConsultation(callback: Consultation.GetLastConsultationCallback){
-            val params = mapOf<String, Any>(
-                "per-page" to 1,
-                "sort" to "-id"
-            )
-            NetworkRequest.ApiManager.getRequest("consultations?expand=$expandValues",
-                params, false, object : NetworkRequest.ApiManager.ApiCallback<Any, Any>{
-                    override fun onSuccess(response: Any) {
-                        try {
-                            val gson = Gson()
-                            val jsonResponse = gson.toJson(response)
-                            val listType = object : TypeToken<List<Consultation.ConsultationResponse>>() {}.type
-                            val responseObject: List<Consultation.ConsultationResponse>? = try {
-                                gson.fromJson(jsonResponse, listType)
-                            } catch (e: JsonSyntaxException) {
-                                e.printStackTrace()
-                                null
-                            }
-
-                            if (responseObject != null && responseObject.isNotEmpty()) {
-                                val firstConsultation: Consultation.ConsultationResponse = responseObject[0]
-                                callback.onSuccess(firstConsultation)
-                            } else {
-                                println("Failed to parse JSON response or empty list.")
-                            }
-
-                        }catch (e: Exception){
-
-                        }
-                    }
-
-                    override fun onError(error: Any) {
-                        callback.onError(error)
-                    }
-                }, Any::class.java)
-        }
-
-
-        fun getConsultationList(callback: Consultation.GetConsultationListCallBack){
-            val params = null
-            NetworkRequest.ApiManager.getRequest("consultations?expand=$expandValues",
-                params ,false, object : NetworkRequest.ApiManager.ApiCallback<Any, Any>{
-                    override fun onSuccess(response: Any) {
-                        try {
-                            val gson = Gson()
-                            val jsonResponse = gson.toJson(response)
-                            val listType = object : TypeToken<List<Consultation.ConsultationResponse>>() {}.type
-                            val responseObject: List<Consultation.ConsultationResponse>? = try {
-                                gson.fromJson(jsonResponse, listType)
-                            } catch (e: JsonSyntaxException) {
-                                e.printStackTrace()
-                                null
-                            }
-                            if (responseObject != null) {
-                                callback.onSuccess(responseObject)
-                            } else {
-                                println("Failed to parse JSON response.")
-                            }
-
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-
-                    override fun onError(error: Any) {
-                        callback.onError(error)
-                    }
-                },  Any::class.java)
-        }
-
-
-
-        fun deleteConsultation(consultationId: String?, callback: Consultation.DeleteConsultationCallBack){
-            val params = null
-            NetworkRequest.ApiManager.deleteRequest("consultations/$consultationId",
-                params ,object : NetworkRequest.ApiManager.ApiCallback<Any, Any>{
-                    override fun onSuccess(response: Any) {
-                        callback.onSuccess("success")
-                    }
-
-                    override fun onError(error: Any) {
-                        callback.onError(error)
-                    }
-                },Any::class.java)
-        }
-
-
-        fun uploadMedia(file: File?, callback: Consultation.UploadCallback) {
-            val params = null
-            NetworkRequest.ApiManager.postRequest("media",
-                params, file ,object : NetworkRequest.ApiManager.ApiCallback<Consultation.UploadMediaResponse, Any>{
-                    override fun onSuccess(response: Consultation.UploadMediaResponse) {
-                        callback.onSuccess(response)
-                    }
-
-                    override fun onError(error: Any) {
-                        callback.onError(error)
-                    }
-                }, Consultation.UploadMediaResponse::class.java)
-        }
-
-        fun getUser(phrId: String, callback: User.GetUserCallback) {
-            val params = null
-            NetworkRequest.ApiManager.getRequest("users/$phrId",
-                params, false, object : NetworkRequest.ApiManager.ApiCallback<User.UserResponse, Any>{
-                    override fun onSuccess(response: User.UserResponse) {
-                        callback.onSuccess(response)
-                    }
-
-                    override fun onError(error: Any) {
-                        callback.onError(error)
-                    }
-                }, User.UserResponse::class.java)
-        }
-
-        fun deleteUser(id: String?, callback: User.DeleteUserCallBack){
-            val params = null
-            NetworkRequest.ApiManager.deleteRequest("users/$id",
-                params ,object : NetworkRequest.ApiManager.ApiCallback<Any, Any>{
-                    override fun onSuccess(response: Any) {
-                        callback.onSuccess("success")
-                    }
-
-                    override fun onError(error: Any) {
-                        callback.onError(error)
-                    }
-                },Any::class.java)
-        }
-
-        fun getUsers(callback: User.GetUsersCallback) {
-            val params = null
-            NetworkRequest.ApiManager.getRequest("users",
-                params ,false ,object : NetworkRequest.ApiManager.ApiCallback<Any, Any>{
-                    override fun onSuccess(response: Any) {
-                        try {
-                            val gson = Gson()
-                            val jsonResponse = gson.toJson(response)
-                            val listType = object : TypeToken<List<User.UserResponse>>() {}.type
-                            val responseObject: List<User.UserResponse>? = try {
-                                gson.fromJson(jsonResponse, listType)
-                            } catch (e: JsonSyntaxException) {
-                                e.printStackTrace()
-                                null
-                            }
-                            if (responseObject != null) {
-                                callback.onSuccess(responseObject)
-                            } else {
-                                println("Failed to parse JSON response.")
-                            }
-
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-
-                    override fun onError(error: Any) {
-                        callback.onError(error)
-                    }
-                },  Any::class.java )
-        }
-
-        fun createUser(userParams: User.CreateUserData, callback: User.CreateUserCallBack){
-            val params = mutableMapOf<String, Any?>()
-
-            params.putAll(userParams.extractNonNullValues())
-            val filteredParams = params.filterValues { it != null }
-            NetworkRequest.ApiManager.postRequest("users",
-                filteredParams,null, object : NetworkRequest.ApiManager.ApiCallback<User.UserResponse, Any>{
-                    override fun onSuccess(response: User.UserResponse) {
-                        callback.onSuccess(response)
-                    }
-
-                    override fun onError(error: Any) {
-                        callback.onError(error)
-                    }
-                }, User.UserResponse::class.java)
-        }
-
-        fun updateUser(userParams: User.UpdateUserData, callback: User.UpdateUserCallback){
-            val params = mutableMapOf<String, Any?>()
-            params.putAll(userParams.extractNonNullValues())
-            val filteredParams = params.filterValues { it != null }
-            NetworkRequest.ApiManager.putRequest("users/${userParams.id}",
-                filteredParams, object : NetworkRequest.ApiManager.ApiCallback<User.UserResponse, Any>{
-                    override fun onSuccess(response: User.UserResponse) {
-                        callback.onSuccess(response)
-                    }
-
-                    override fun onError(error: Any) {
-                        callback.onError(error)
-                    }
-                }, User.UserResponse::class.java)
-        }
+        val request: Request = requestBuilder.build()
+        return okHttpClient.newCall(request)
     }
-
+    fun getUser(userId: String, callback: ApiCallback<User>) {
+        val response: Call = callApi("users/$userId", "GET");
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onFailure(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 200) {
+                    val responseBody = response.body?.string()
+                    callback.onSuccess(Gson().fromJson(responseBody, User::class.java))
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+    fun getUsers(callback: ApiCallback<List<User>>) {
+        val response: Call = callApi("users", "GET");
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 200) {
+                    val responseBody = response.body?.string()
+                    val userListType = object : TypeToken<List<User>>() {}.type
+                    callback.onSuccess(Gson().fromJson(responseBody, userListType))
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+    fun createUser(user: User, callback: ApiCallback<User>) {
+        val response: Call = callApi("users", "POST", user.toJson());
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 201) {
+                    val responseBody = response.body?.string()
+                    callback.onSuccess(Gson().fromJson(responseBody, User::class.java))
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+    fun updateUser(user: User, userId: String?, callback: ApiCallback<User>) {
+        val response: Call = callApi("users/${userId}", "PUT", user.toJson());
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 200) {
+                    val responseBody = response.body?.string()
+                    callback.onSuccess(Gson().fromJson(responseBody, User::class.java))
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+    fun deleteUser(userId: String, callback: ApiCallback<Boolean>) {
+        val response: Call = callApi("users/${userId}", "DELETE");
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 204) {
+                    callback.onSuccess(true)
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+    fun getConsultationList(
+        page: Int? = 1,
+        perPage: Int? = 20,
+        userId: Int? = null,
+        callback: ApiCallback<List<Consultation>>
+    ) {
+        var body: MutableMap<String, Any> = mutableMapOf(
+            "expand" to "pusherAppKey,parentConsultation,consultations,user,media,pusherChannel," +
+                    "chatConfig,chatHistory,voipConfig,videoConfig,recommendation"
+        )
+        if (userId != null) {
+            body = body.toMutableMap()
+            body["filter[user_id]"] = userId
+        }
+        val response: Call = callApi(
+            endpoint = "consultations",
+            method = "GET",
+            body = body,
+            page = page,
+            perPage = perPage
+        );
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 200) {
+                    val responseBody = response.body?.string()
+                    val consultations: List<Consultation> = Gson().fromJson(
+                        responseBody,
+                        object : TypeToken<List<Consultation>>() {}.type
+                    )
+                    callback.onSuccess(consultations)
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+    fun getLastConsultation(callback: ApiCallback<Consultation>) {
+        val body: MutableMap<String, Any> = mutableMapOf(
+            "expand" to "pusherAppKey,parentConsultation,consultations,user,media,pusherChannel," +
+                    "chatConfig,chatHistory,voipConfig,videoConfig,recommendation",
+            "sort" to "-id",
+            "per-page" to 1
+        )
+        val response: Call = callApi(
+            endpoint = "consultations",
+            method = "GET",
+            body = body,
+        );
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 200) {
+                    val responseBody = response.body?.string()
+                    val consultations: List<Consultation> = Gson().fromJson(
+                        responseBody,
+                        object : TypeToken<List<Consultation>>() {}.type
+                    )
+                    callback.onSuccess(consultations[0])
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+    fun getConsultationInfo(consultationId: String, callback: ApiCallback<Consultation>) {
+        val body: MutableMap<String, Any> = mutableMapOf(
+            "expand" to "pusherAppKey,parentConsultation,consultations,user,media,pusherChannel," +
+                    "chatConfig,chatHistory,voipConfig,videoConfig,recommendation"
+        )
+        val response: Call = callApi(
+            endpoint = "consultations/${consultationId}",
+            method = "GET",
+            body = body,
+        );
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 200) {
+                    val responseBody = response.body?.string()
+                    callback.onSuccess(Gson().fromJson(responseBody, Consultation::class.java))
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+    fun createConsultation(
+        question: String,
+        medium: Medium,
+        userID: Int,
+        mediaIDs: List<String>? = null,
+        followUpId: String? = null,
+        callback: ApiCallback<Consultation>
+    ) {
+        if (!Medium.values().contains(medium)) {
+            throw Exception("Invalid medium value")
+        }
+        val body: MutableMap<String, Any> = mutableMapOf(
+            "question" to question,
+            "medium" to medium.toString(),
+            "user_id" to userID,
+            "expand" to "pusherAppKey,parentConsultation,consultations,user,media,pusherChannel," +
+                    "chatConfig,chatHistory,voipConfig,videoConfig,recommendation",
+        )
+        if(mediaIDs != null){
+            body["media_ids"] = mediaIDs
+        }
+        if(followUpId != null){
+            body["followUpId"] = followUpId
+        }
+        val response = callApi(
+            endpoint = "consultations",
+            method = "POST",
+            body = body
+        )
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 201) {
+                    val responseBody = response.body?.string()
+                    callback.onSuccess(Gson().fromJson(responseBody, Consultation::class.java))
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+    fun deleteConsultation(consultationId: String, callback: ApiCallback<Boolean>) {
+        val response: Call = callApi("consultations/${consultationId}", "DELETE");
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 204) {
+                    callback.onSuccess(true)
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+    fun cancelConsultation(consultationId: String, callback: ApiCallback<Boolean>) {
+        val response: Call = callApi("consultations/${consultationId}/cancel", "POST");
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 200) {
+                    callback.onSuccess(true)
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+    fun uploadMedia(file: File, callback: ApiCallback<Media>) {
+        val response: Call = callApi(endpoint = "media", method = "POST", file = file);
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 200) {
+                    val responseBody = response.body?.string()
+                    callback.onSuccess(Gson().fromJson(responseBody, Media::class.java))
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+    fun getPrescription(consultationId: String, callback: ApiCallback<Response>) {
+        val response: Call = callApi(
+            endpoint = "consultations/$consultationId/download-prescription",
+            method = "GET"
+        );
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 200) {
+                    callback.onSuccess(response)
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
 }

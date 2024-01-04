@@ -1,13 +1,24 @@
 package com.altibbi.telehealth
-
-class Media {
-    data class Data(
-        val id: String?,
-        val type: String?,
-        val name: String?,
-        val path: String?,
-        val extension: String?,
-        val url: String?,
-        val size: Int?
-    )
+data class Media(
+    val id: String?,
+    val type: String?,
+    val name: String?,
+    val path: String?,
+    val extension: String?,
+    val size: Int?,
+    val url: String?
+) {
+    companion object {
+        fun fromJson(json: Map<String, Any>): Media {
+            return Media(
+                json["id"] as? String,
+                json["type"] as? String,
+                json["name"] as? String,
+                json["path"] as? String,
+                json["extension"] as? String,
+                json["size"] as? Int,
+                json["url"] as? String
+            )
+        }
+    }
 }

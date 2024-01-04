@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         initButton.setOnClickListener{
             val endPoint : EditText = findViewById(R.id.textInputEditText17)
             val auth : EditText = findViewById(R.id.textInputEditText16)
-            AltibbiService.init(endPoint.text.toString(), auth.text.toString(),"en")
+            AltibbiService.init(auth.text.toString(), endPoint.text.toString(), "en")
         }
     }
 }
