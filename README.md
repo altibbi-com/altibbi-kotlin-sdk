@@ -378,7 +378,7 @@ Use VideoView Widget
 ### Initializing Chat:
 Use AltibbiChat Widget
 ```kotlin
-AltibbiChat.init(it, context, it1, response.chatConfig!!.chatUserToken!!)
+AltibbiChat.init(response.chatConfig.appId, context, response.chatConfig.chatUserId, response.chatConfig!!.chatUserToken!!)
 ```
 
 
