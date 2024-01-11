@@ -6,10 +6,26 @@ This Android SDK provides integration for the Altibbi services, including video 
 notification, and many other features. This guide will walk you through the steps to integrate it into your Android
 project.
 
-## Usage
+## Features
+- **Video and VOIP Consultation:** Facilitate live video and VOIP sessions between patients and healthcare professionals.
+- **GSM Consultation:** Facilitate GSM(Phone calls) sessions between patients and healthcare professionals.
+- **Text Consultation:** Offer real-time text messaging for healthcare inquiries.
+- **User Management:** Easily manage user information with our comprehensive API.
+- **Real-time Notifications:** Keep users updated with push notifications and server to server real time callbacks.
 
-#### Initialize the Altibbi service with the user token and partner endpoint as follows:
-Note: Be sure to replace placeholders `"USER_TOKEN"` and `"PARTNER_ENDPOINT"` with your actual values.
+
+## Installation
+Install the SDK :
+
+```sh
+implementation("com.altibbi.telehealth:AltibbiTelehealth:0.1.1")
+```
+
+## Initialization
+Initialize the Altibbi SDK with the following parameters:
+- **PARTNER_ENDPOINT:** Your partner endpoint (will be shared with you upon request).
+- **token:** Authentication token from your backend.
+- **language:** Preferred language for responses either Arabic (default) or English.
 
 ```kotlin
 AltibbiService.init(
@@ -19,6 +35,10 @@ AltibbiService.init(
 )
 ```
 
+
+## Usage
+
+
 ### After Initialize Altibbi Service You Can Use Altibbi API :
 #### Using the API Service:
 ```kotlin
@@ -26,6 +46,19 @@ val apiService = ApiService()
 ```
 
 ### User API
+Manage users with functions like `createUser`, `updateUser`,`getUser`, `getUsers`, and `deleteUser`. Below are examples of how to use these functions:
+
+
+### USER API
+
+| APi        | params             |
+|------------|--------------------|
+| getUser    | USER_ID (required) |
+| getUsers   | page , perPage     |
+| createUser | user data          |
+| updateUser | userId             |
+| deleteUser | userId             |
+
 
 #### Create New User :
 
@@ -115,6 +148,18 @@ apiService.updateUser(user,user.id,object : ApiCallback<User> {
 ```
 
 ### Consultation API
+Create and manage consultations using our suite of functions:
+
+
+| APi                 | params                                                                               |
+|---------------------|--------------------------------------------------------------------------------------|
+| createConsultation  | question (required)  , medium (required) , userId (required) , mediaIds , followUpId |
+| getConsultationInfo | consultationId                                                                       |
+| getLastConsultation |                                                                                      |
+| getConsultationList | userId (required), page, perPage                                                     |
+| deleteConsultation  | consultationId                                                                       |
+| cancelConsultation  | consultationId                                                                       |
+
 
 #### Create Consultation :
 
