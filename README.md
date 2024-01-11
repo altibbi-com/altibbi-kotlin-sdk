@@ -1,5 +1,3 @@
-<img src="https://cdn.altibbi.com/theme/altibbi/icons/tbi-brand.svg" width="50%" height="50%">
-
 # Altibbi Android SDK
 
 This Android SDK provides integration for the Altibbi services, including video consultation, text consultation, push
@@ -18,7 +16,7 @@ project.
 Install the SDK :
 
 ```sh
-implementation("com.altibbi.telehealth:AltibbiTelehealth:0.1.1")
+implementation("com.altibbi.telehealth:AltibbiTelehealth:$altibbiTelehealthVersion")
 ```
 
 ## Initialization
@@ -428,12 +426,8 @@ socket.subscribe("call-status", object : TBISubscribeEventListener { // call-sta
 ### Displaying Altibbi Video:
 Use VideoView Widget
 ```kotlin
-val intent = Intent(applicationContext, Video::class.java)
-intent.putExtra("apiKey",response.videoConfig?.apiKey)
-intent.putExtra("callId",response.videoConfig?.callId)
-intent.putExtra("token",response.videoConfig?.token)
-intent.putExtra("voip",true)
-startActivity(intent)
+session.subscribe(subscriber)
+subscriberViewContainer.addView(subscriber?.view)
 ```
 
 

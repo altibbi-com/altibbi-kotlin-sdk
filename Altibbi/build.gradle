@@ -5,6 +5,10 @@ plugins {
     id 'signing'
 }
 
+ext {
+    altibbiTelehealthVersion = '0.1.1'
+}
+
 android {
     namespace 'com.altibbi.telehealth'
     compileSdk 33
@@ -60,8 +64,8 @@ publishing {
         maven {
             url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
             credentials {
-                username = ossrhUsername
-                password = ossrhPassword
+                username = test
+                password = test
             }
         }
     }
@@ -69,7 +73,7 @@ publishing {
         release(MavenPublication) {
             groupId = 'com.altibbi.telehealth'
             artifactId = 'AltibbiTelehealth'
-            version = '0.1.0'
+            version = altibbiTelehealthVersion
 
             artifact("$buildDir/outputs/aar/${project.name}-release.aar")
 
