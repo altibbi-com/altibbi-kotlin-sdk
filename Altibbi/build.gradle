@@ -2,6 +2,7 @@ plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
     id 'maven-publish'
+    id 'signing'
 }
 
 android {
@@ -55,6 +56,15 @@ task sourceJar(type: Jar) {
 }
 
 publishing {
+    repositories {
+        maven {
+            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username = ossrhUsername
+                password = ossrhPassword
+            }
+        }
+    }
     publications {
         release(MavenPublication) {
             groupId = 'com.altibbi.telehealth'
@@ -64,6 +74,37 @@ publishing {
             artifact("$buildDir/outputs/aar/${project.name}-release.aar")
 
             artifact sourceJar
+
+            pom {
+                name = 'Altibbi Telehealth Library'
+                description = 'A library providing telehealth functionalities for Altibbi applications.'
+                url = 'https://github.com/altibbi-com/altibbi-kotlin-sdk'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'mahmoud.shtayyat'
+                        name = 'Mahmoud Alshtayyat'
+                        email = 'mahmoud@altibbi.com'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/altibbi-com/altibbi-kotlin-sdk.git'
+                    developerConnection = 'scm:git:ssh://github.com:altibbi-com/altibbi-kotlin-sdk.git'
+                    url = 'http://github.com/altibbi-com/altibbi-kotlin-sdk'
+                }
+            }
         }
     }
+}
+
+signing {
+    sign publishing.publications.release
 }
