@@ -1,4 +1,4 @@
-# Altibbi Android SDK
+# AltibbiTelehealth
 
 This Android SDK provides integration for the Altibbi services, including video consultation, text consultation, push
 notification, and many other features. This guide will walk you through the steps to integrate it into your Android

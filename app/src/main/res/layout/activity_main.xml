@@ -44,7 +44,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
         android:hint="Auth"
-        android:text="egq_2RRrH1fDEUWM-g6HINSibhqOYVM-"
+        android:text=""
         app:layout_constraintTop_toBottomOf="@+id/textInputEditText17"
         tools:layout_editor_absoluteX="1dp" />
 
@@ -64,7 +64,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="92dp"
         android:hint="End Point"
-        android:text="https://tawuniya.altibb.com"
+        android:text=""
         app:layout_constraintTop_toTopOf="parent"
         tools:layout_editor_absoluteX="1dp" />
 </LinearLayout>
