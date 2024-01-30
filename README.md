@@ -16,7 +16,7 @@ project.
 Install the SDK :
 
 ```sh
-implementation("com.altibbi.telehealth:AltibbiTelehealth:0.1.0")
+implementation("com.altibbi.telehealth:AltibbiTelehealth:0.1.3")
 ```
 
 ## Initialization
