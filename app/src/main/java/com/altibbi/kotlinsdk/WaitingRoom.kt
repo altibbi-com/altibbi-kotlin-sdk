@@ -17,7 +17,6 @@ class WaitingRoom : AppCompatActivity() {
     val socket = TBISocket();
 
     var currentConsultation: Consultation? = null
-    private val apiService = ApiService()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_waiting_room)
@@ -32,7 +31,7 @@ class WaitingRoom : AppCompatActivity() {
     }
 
     private fun getConsultation(context: Context){
-        apiService.getLastConsultation(object : ApiCallback<Consultation> {
+        ApiService.getLastConsultation(object : ApiCallback<Consultation> {
             override fun onSuccess(response: Consultation) {
                 currentConsultation = response
                 if(response.status == "in_progress"){
@@ -90,7 +89,7 @@ class WaitingRoom : AppCompatActivity() {
                             override fun onEvent(event: JSONObject) {
                                 val status = event.getString("status")
                                 if (status == "in_progress"){
-                                    apiService.getLastConsultation(object : ApiCallback<Consultation> {
+                                    ApiService.getLastConsultation(object : ApiCallback<Consultation> {
                                         override fun onSuccess(response: Consultation) {
                                             println("getLastConsultation response is -> $response")
                                             if(response.videoConfig != null){
@@ -167,7 +166,7 @@ class WaitingRoom : AppCompatActivity() {
 
     private fun cancelConsultation(id: String){
 
-        apiService.cancelConsultation(id, object : ApiCallback<Boolean> {
+        ApiService.cancelConsultation(id, object : ApiCallback<Boolean> {
             override fun onSuccess(response: Boolean) {
                 if (response){
                     finish()

@@ -16,11 +16,10 @@ class UserPage : AppCompatActivity() {
         val getUserIdButton = findViewById<Button>(R.id.button4);
         val textInputEditText: EditText = findViewById(R.id.textInputEditText2)
 
-        val apiService = ApiService()
 
         getUserIdButton.setOnClickListener{
             val userId = textInputEditText.text.toString()
-           apiService.getUser(userId,   object : ApiCallback<User> {
+           ApiService.getUser(userId,   object : ApiCallback<User> {
                override fun onSuccess(response: User) {
                    println("Successful response: ${response.name}")
                    println("Successful response: ${response.id}")
@@ -66,7 +65,7 @@ class UserPage : AppCompatActivity() {
             )
 
             println("update user data -> $user")
-            apiService.updateUser(user,user.id,object : ApiCallback<User> {
+            ApiService.updateUser(user,user.id,object : ApiCallback<User> {
                 override fun onSuccess(response: User) {
                     println("Successful response: ${response.name}")
                     println("Successful response: ${response.id}")
@@ -85,7 +84,7 @@ class UserPage : AppCompatActivity() {
         val getAllUsersButton = findViewById<Button>(R.id.button10);
 
         getAllUsersButton.setOnClickListener{
-            apiService.getUsers(object : ApiCallback<List<User>> {
+            ApiService.getUsers(object : ApiCallback<List<User>> {
                 override fun onSuccess(response: List<User>) {
                     println("Successful response: ${response[5].id}")
                 }
@@ -105,7 +104,7 @@ class UserPage : AppCompatActivity() {
 
         deleteUserButton.setOnClickListener{
             val id = deleteUserId.text.toString()
-            apiService.deleteUser(id, object : ApiCallback<Boolean> {
+            ApiService.deleteUser(id, object : ApiCallback<Boolean> {
                 override fun onSuccess(response: Boolean) {
                 }
 
@@ -140,7 +139,7 @@ class UserPage : AppCompatActivity() {
                 id = id.text.toString()
             )
 
-            apiService.createUser(user, object : ApiCallback<User> {
+            ApiService.createUser(user, object : ApiCallback<User> {
                 override fun onSuccess(response: User) {
                     println("Successful response: ${response.name}")
                     println("Successful response: ${response.id}")

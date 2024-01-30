@@ -6,7 +6,7 @@ plugins {
 }
 
 ext {
-    altibbiTelehealthVersion = '0.1.1'
+    altibbiTelehealthVersion = '0.1.3'
 }
 
 android {
@@ -64,8 +64,8 @@ publishing {
         maven {
             url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
             credentials {
-                username = 'test'
-                password = 'test'
+                username = ossrhUsername
+                password = ossrhPassword
             }
         }
     }

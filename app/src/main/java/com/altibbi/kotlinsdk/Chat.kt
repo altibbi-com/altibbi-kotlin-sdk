@@ -29,7 +29,6 @@ class Chat : AppCompatActivity() {
     var currentChannel: GroupChannel? = null
     private lateinit var messageAdapter: MessageAdapter
     private lateinit var recyclerView: RecyclerView
-    private val apiService = ApiService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -175,7 +174,7 @@ class Chat : AppCompatActivity() {
 
     private fun getConsultation(context: Context, consId: String) {
 
-        apiService.getConsultationInfo(consId, object : ApiCallback<Consultation> {
+        ApiService.getConsultationInfo(consId, object : ApiCallback<Consultation> {
             override fun onSuccess(response: Consultation) {
                 println("get consultation info response is -> $response")
                 response.chatConfig?.appId?.let { response.chatConfig!!.chatUserId?.let { it1 ->
@@ -219,7 +218,7 @@ class Chat : AppCompatActivity() {
 
     private fun cancelConsultation(id: String){
 
-        apiService.cancelConsultation(id, object : ApiCallback<Boolean> {
+        ApiService.cancelConsultation(id, object : ApiCallback<Boolean> {
             override fun onSuccess(response: Boolean) {
                 println("cancelConsultation response : $response")
                 if (response){

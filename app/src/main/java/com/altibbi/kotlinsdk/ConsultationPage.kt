@@ -34,7 +34,6 @@ import java.io.InputStream
 
 class ConsultationPage : AppCompatActivity() {
     private lateinit var galleryActivityResultLauncher: ActivityResultLauncher<Intent>
-    private val apiService = ApiService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,7 +93,7 @@ class ConsultationPage : AppCompatActivity() {
     }
 
     private fun getLastConsultation(){
-        apiService.getLastConsultation(object : ApiCallback<Consultation> {
+        ApiService.getLastConsultation(object : ApiCallback<Consultation> {
             override fun onSuccess(response: Consultation) {
                 println("getLastConsultation response: $response")
                 if (response.status == "new" || response.status == "in_progress"){
@@ -119,7 +118,7 @@ class ConsultationPage : AppCompatActivity() {
         val consultationToGet: EditText = findViewById(R.id.textInputEditText15)
         val id: String = consultationToGet.text.toString()
 
-        apiService.getPrescription(id, object : ApiCallback<Response> {
+        ApiService.getPrescription(id, object : ApiCallback<Response> {
             override fun onSuccess(response: Response) {
                 val inputStream = response.body?.byteStream()
                 if (inputStream != null) {
@@ -188,7 +187,7 @@ class ConsultationPage : AppCompatActivity() {
                         ) == PackageManager.PERMISSION_GRANTED
                     ){
 
-                        apiService.uploadMedia(imageFile, object : ApiCallback<Media> {
+                        ApiService.uploadMedia(imageFile, object : ApiCallback<Media> {
                             override fun onSuccess(response: Media) {
                                 println("uploadMedia onSuccess : $response")
                             }
@@ -233,14 +232,14 @@ class ConsultationPage : AppCompatActivity() {
 
 
         }
-        apiService.getConsultationList(callback = consultationCallback)
+        ApiService.getConsultationList(callback = consultationCallback)
     }
 
 
     private fun getConsultation() {
         val consultationToGet: EditText = findViewById(R.id.textInputEditText4)
         val id: String = consultationToGet.text.toString()
-        apiService.getConsultationInfo(id, object : ApiCallback<Consultation> {
+        ApiService.getConsultationInfo(id, object : ApiCallback<Consultation> {
             override fun onSuccess(response: Consultation) {
                 println("get consultation info response is -> $response")
             }
@@ -260,7 +259,7 @@ class ConsultationPage : AppCompatActivity() {
         val consultationId: EditText = findViewById(R.id.textInputEditText3)
         val id: String = consultationId.text.toString()
 
-        apiService.cancelConsultation(id, object : ApiCallback<Boolean> {
+        ApiService.cancelConsultation(id, object : ApiCallback<Boolean> {
             override fun onSuccess(response: Boolean) {
                 println("cancelConsultation response: $response")
             }
@@ -289,7 +288,7 @@ class ConsultationPage : AppCompatActivity() {
 
 //        mediaIDs = arrayOf("c8617c16-98ef-11ee-9bc6-9600009a97a9"),
 
-        apiService.createConsultation(
+        ApiService.createConsultation(
             question = textInputEditText.text.toString(),
             medium = Medium.chat,
             userID = 64,
@@ -319,7 +318,7 @@ class ConsultationPage : AppCompatActivity() {
         val deleteConsId: EditText = findViewById(R.id.textInputEditText5)
         val id: String = deleteConsId.text.toString()
 
-        apiService.deleteConsultation(id, object : ApiCallback<Boolean> {
+        ApiService.deleteConsultation(id, object : ApiCallback<Boolean> {
             override fun onSuccess(response: Boolean) {
                 println("deleteConsultation response: $response")
             }

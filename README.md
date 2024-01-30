@@ -38,10 +38,6 @@ AltibbiService.init(
 
 
 ### After Initialize Altibbi Service You Can Use Altibbi API :
-#### Using the API Service:
-```kotlin
-val apiService = ApiService()
-```
 
 ### User API
 Manage users with functions like `createUser`, `updateUser`,`getUser`, `getUsers`, and `deleteUser`. Below are examples of how to use these functions:
@@ -64,7 +60,7 @@ You Have To Pass User Object
 
 ```kotlin
 val user =  User(name = "user_name", email = "example@gmail.com")
-apiService.createUser(user, object : ApiCallback<User> {
+ApiService.createUser(user, object : ApiCallback<User> {
     override fun onSuccess(response: User) {
     }
 
@@ -79,7 +75,7 @@ apiService.createUser(user, object : ApiCallback<User> {
 #### Get User Info By ID :
 
 ```kotlin
-apiService.getUser(userId, object : ApiCallback<User> {
+ApiService.getUser(userId, object : ApiCallback<User> {
     override fun onSuccess(response: User) {
         // Response is User info
     }
@@ -97,7 +93,7 @@ apiService.getUser(userId, object : ApiCallback<User> {
 you can pass page && perPage defaults 1 && 20
 
 ```kotlin
-apiService.getUsers(object : ApiCallback<List<User>> {
+ApiService.getUsers(object : ApiCallback<List<User>> {
     override fun onSuccess(response: List<User>) {
         // Response is Users list
     }
@@ -115,7 +111,7 @@ apiService.getUsers(object : ApiCallback<List<User>> {
 
 ```kotlin
 val user =  User(name = "user_name", email = "example@gmail.com", id = 1)
-apiService.updateUser(user,user.id,object : ApiCallback<User> {
+ApiService.updateUser(user,user.id,object : ApiCallback<User> {
     override fun onSuccess(response: User) {
     }
 
@@ -131,7 +127,7 @@ apiService.updateUser(user,user.id,object : ApiCallback<User> {
 #### Delete User :
 
 ```kotlin
- apiService.deleteUser(id, object : ApiCallback<Boolean> {
+ ApiService.deleteUser(id, object : ApiCallback<Boolean> {
     override fun onSuccess(response: Boolean) {
         // Response = True means User is deleted 
     }
@@ -162,7 +158,7 @@ Create and manage consultations using our suite of functions:
 #### Create Consultation :
 
 ```kotlin
-apiService.createConsultation(
+ApiService.createConsultation(
     question = "YOUR QUESTION",
     medium = Medium.chat, // chat, voip, video, gsm
     userID = Int, 
@@ -198,14 +194,14 @@ you can pass page && perPage defaults 1 && 20
     override fun onRequestError(error: String?) {
     }
  }
-apiService.getConsultationList(callback = consultationCallback)
+ApiService.getConsultationList(callback = consultationCallback)
 
 ```
 
 #### Consultation Info By ID :
 
 ```kotlin
-apiService.getConsultationInfo(id, object : ApiCallback<Consultation> {
+ApiService.getConsultationInfo(id, object : ApiCallback<Consultation> {
     override fun onSuccess(response: Consultation) {
         // Response is the Consultation info
     }
@@ -222,7 +218,7 @@ apiService.getConsultationInfo(id, object : ApiCallback<Consultation> {
 #### Last Consultation Info :
 
 ```kotlin
-apiService.getLastConsultation(object : ApiCallback<Consultation> {
+ApiService.getLastConsultation(object : ApiCallback<Consultation> {
     override fun onSuccess(response: Consultation) {
         // Response is the last consultation info
     }
@@ -241,7 +237,7 @@ apiService.getLastConsultation(object : ApiCallback<Consultation> {
 #### Delete Consultation :
 
 ```kotlin
-apiService.deleteConsultation(id, object : ApiCallback<Boolean> {
+ApiService.deleteConsultation(id, object : ApiCallback<Boolean> {
     override fun onSuccess(response: Boolean) {
         // Response = True means Consultation is deleted
     }
@@ -258,7 +254,7 @@ apiService.deleteConsultation(id, object : ApiCallback<Boolean> {
 #### Cancel Consultation :
 
 ```kotlin
-apiService.cancelConsultation(id, object : ApiCallback<Boolean> {
+ApiService.cancelConsultation(id, object : ApiCallback<Boolean> {
     override fun onSuccess(response: Boolean) {
         // Response = True means Consultation is canceled
     }
@@ -278,7 +274,7 @@ apiService.cancelConsultation(id, object : ApiCallback<Boolean> {
 note : if the prescription for the consultation is generated it will return else it will be null 
 
 ```kotlin
-apiService.getPrescription(id, object : ApiCallback<Response> {
+ApiService.getPrescription(id, object : ApiCallback<Response> {
     override fun onSuccess(response: Response) {
         val inputStream = response.body?.byteStream()
         if (inputStream != null) {
@@ -298,7 +294,7 @@ apiService.getPrescription(id, object : ApiCallback<Response> {
 #### Upload Media That Can Be Used In Consultation (Image , PDF)
 
 ```kotlin
-apiService.uploadMedia(imageFile, object : ApiCallback<Media> {
+ApiService.uploadMedia(imageFile, object : ApiCallback<Media> {
     override fun onSuccess(response: Media) {
     }
     override fun onFailure(error: String?) {
