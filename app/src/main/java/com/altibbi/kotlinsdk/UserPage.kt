@@ -7,6 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.altibbi.telehealth.ApiCallback
 import com.altibbi.telehealth.ApiService
 import com.altibbi.telehealth.User
+import com.altibbi.telehealth.types.BloodType
+import com.altibbi.telehealth.types.Gender
+import com.altibbi.telehealth.types.MaritalStatus
+import com.altibbi.telehealth.types.RelationType
 
 
 class UserPage : AppCompatActivity() {
@@ -51,16 +55,17 @@ class UserPage : AppCompatActivity() {
                 name = userName.text.toString(),
                 email = email.text.toString(),
                 dateOfBirth = null,
-                gender = gender.text.toString(),
+                gender = if (gender.text.toString().equals("male", ignoreCase = true)) Gender.MALE else Gender.FEMALE,
                 insuranceId = insuranceNumber.text.toString(),
                 policyNumber = policyNumber.text.toString(),
                 height = null,
                 weight = null,
-                bloodType = null,
+                bloodType = BloodType.AB_NEGATIVE,
                 smoker = null,
                 alcoholic = null,
                 nationalityNumber = null,
                 maritalStatus = null,
+                relationType = null,
                 id = id.text.toString()
             )
 
@@ -126,16 +131,17 @@ class UserPage : AppCompatActivity() {
                 name = userName.text.toString(),
                 email = email.text.toString(),
                 dateOfBirth = null,
-                gender = gender.text.toString(),
+                gender = if (gender.text.toString().equals("male", ignoreCase = true)) Gender.MALE else Gender.FEMALE,
                 insuranceId = insuranceNumber.text.toString(),
                 policyNumber = policyNumber.text.toString(),
                 height = null,
                 weight = null,
-                bloodType = null,
+                bloodType = BloodType.AB_NEGATIVE,
                 smoker = null,
                 alcoholic = null,
                 nationalityNumber = null,
                 maritalStatus = null,
+                relationType = null,
                 id = id.text.toString()
             )
 

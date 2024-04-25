@@ -24,6 +24,7 @@ data class Consultation(
     val recommendation: Recommendation?,
     @SerializedName("doctor_name") val doctorName: String?,
     @SerializedName("doctor_avatar") val doctorAvatar: String?,
+    @SerializedName("doctor_average_rating") val doctorAverageRating: Double?,
 ) {
     companion object {
         fun fromJson(json: Map<String, Any>): Consultation {
@@ -52,6 +53,7 @@ data class Consultation(
                 recommendation = json["recommendation"]?.let { Recommendation.fromJson(it as Map<String, Any>) },
                 doctorName = json["doctor_name"] as? String,
                 doctorAvatar = json["doctor_avatar"] as? String,
+                doctorAverageRating = json["doctor_average_rating"] as? Double,
             )
         }
     }
