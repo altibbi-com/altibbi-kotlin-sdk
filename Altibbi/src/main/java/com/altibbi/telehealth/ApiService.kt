@@ -382,5 +382,29 @@ class ApiService {
                 }
             })
         }
+
+        fun rateConsultation(consultationId: String, score: Double, callback: ApiCallback<Boolean>) {
+            val body: MutableMap<String, Any> = mutableMapOf(
+                "score" to score,
+            )
+            val response: Call = callApi(
+                endpoint = "consultations/$consultationId/rate",
+                method = "POST",
+                body = body,
+            );
+            response.enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onRequestError(e.message)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.code == 200) {
+                        callback.onSuccess(response = true)
+                    } else {
+                        callback.onFailure(response.body?.string())
+                    }
+                }
+            })
+        }
     }
 }

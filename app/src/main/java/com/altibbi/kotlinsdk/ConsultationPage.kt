@@ -291,7 +291,7 @@ class ConsultationPage : AppCompatActivity() {
         ApiService.createConsultation(
             question = textInputEditText.text.toString(),
             medium = Medium.chat,
-            userID = 64,
+            userID = 2,
             mediaIDs = null,
             followUpId = parentConsId.text.toString(),
             object : ApiCallback<Consultation> {
@@ -321,6 +321,25 @@ class ConsultationPage : AppCompatActivity() {
         ApiService.deleteConsultation(id, object : ApiCallback<Boolean> {
             override fun onSuccess(response: Boolean) {
                 println("deleteConsultation response: $response")
+            }
+
+            override fun onFailure(error: String?) {
+                println(error)
+            }
+
+            override fun onRequestError(error: String?) {
+                println(error)
+            }
+        })
+    }
+
+    private fun rateConsultation() {
+        val deleteConsId: EditText = findViewById(R.id.textInputEditText5)
+        val id: String = deleteConsId.text.toString()
+
+        ApiService.rateConsultation(id, 4.0, object : ApiCallback<Boolean> {
+            override fun onSuccess(response: Boolean) {
+                println("rated consultation successfully: $response")
             }
 
             override fun onFailure(error: String?) {
