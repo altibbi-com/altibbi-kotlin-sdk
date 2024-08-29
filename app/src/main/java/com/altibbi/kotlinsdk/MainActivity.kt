@@ -27,10 +27,11 @@ class MainActivity : AppCompatActivity() {
 
         val initButton = findViewById<Button>(R.id.button15)
 
-        initButton.setOnClickListener{
-            val endPoint : EditText = findViewById(R.id.textInputEditText17)
-            val auth : EditText = findViewById(R.id.textInputEditText16)
-            AltibbiService.init(auth.text.toString(), endPoint.text.toString(), "en")
+        initButton.setOnClickListener {
+            println("RWEQREWRWQERQWERQWERWQER")
+            val endPoint: EditText = findViewById(R.id.textInputEditText17)
+            val auth: EditText = findViewById(R.id.textInputEditText16)
+            AltibbiService.init("abd", "https://tawuniya.altibb.com", "en")
         }
     }
 }

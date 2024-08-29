@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.altibbi.telehealth.AltibbiChat
 import com.altibbi.telehealth.ApiCallback
 import com.altibbi.telehealth.ApiService
-import com.altibbi.telehealth.Consultation
+import com.altibbi.telehealth.model.Consultation
 import com.sendbird.android.BaseChannel
 import com.sendbird.android.BaseMessage
 import com.sendbird.android.GroupChannel

@@ -1,4 +1,4 @@
-package com.altibbi.telehealth
+package com.altibbi.telehealth.model
 
 import com.google.gson.annotations.SerializedName
 data class Consultation(
@@ -38,12 +38,12 @@ data class Consultation(
                 parentConsultationId = json["parent_consultation_id"] as? Int,
                 createdAt = json["created_at"] as? String,
                 updatedAt = json["updated_at"] as? String,
-                parentConsultation = json["parentConsultation"]?.let { Consultation.fromJson(it as Map<String, Any>) },
+                parentConsultation = json["parentConsultation"]?.let { fromJson(it as Map<String, Any>) },
                 media = (json["media"] as? List<*>)?.map { it as? Map<String, Any> }
                     ?.map { Media.fromJson(it!!) },
                 user = json["user"]?.let { User.fromJson(it as Map<String, Any>) },
                 consultations = (json["consultations"] as? List<*>)?.map { it as? Map<String, Any> }
-                    ?.map { Consultation.fromJson(it!!) },
+                    ?.map { fromJson(it!!) },
                 socketChannel = json["pusherChannel"] as? String,
                 appKey = json["pusherAppKey"] as? String,
                 chatConfig = json["chatConfig"]?.let { ChatConfig.fromJson(it as Map<String, Any>) },

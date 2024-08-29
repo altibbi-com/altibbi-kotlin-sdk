@@ -1,4 +1,4 @@
-package com.altibbi.telehealth.types
+package com.altibbi.telehealth.model
 
 enum class BloodType(val type: String) {
     A_POSITIVE("A+"),

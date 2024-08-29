@@ -1,4 +1,4 @@
-package com.altibbi.telehealth
+package com.altibbi.telehealth.model
 
 enum class Medium  {
     gsm,

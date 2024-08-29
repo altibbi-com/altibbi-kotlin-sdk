@@ -7,7 +7,7 @@ import android.os.Bundle
 import android.widget.Button
 import com.altibbi.telehealth.ApiCallback
 import com.altibbi.telehealth.ApiService
-import com.altibbi.telehealth.Consultation
+import com.altibbi.telehealth.model.Consultation
 import com.altibbi.telehealth.TBISocket
 import com.altibbi.telehealth.TBISocketEventListener
 import com.altibbi.telehealth.TBISubscribeEventListener

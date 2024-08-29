@@ -20,11 +20,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.altibbi.telehealth.ApiCallback
-import com.altibbi.telehealth.Media
-import com.altibbi.telehealth.Medium
+import com.altibbi.telehealth.model.Media
+import com.altibbi.telehealth.model.Medium
 import com.altibbi.telehealth.ApiService
-import com.altibbi.telehealth.Consultation
+import com.altibbi.telehealth.model.Consultation
 import com.altibbi.telehealth.TBISocket
+import com.altibbi.telehealth.model.PredictSpecialty
+import com.altibbi.telehealth.model.PredictSummary
+import com.altibbi.telehealth.model.Soap
+import com.altibbi.telehealth.model.Transcription
 import okhttp3.Response
 import java.io.File
 import java.io.FileOutputStream
@@ -39,6 +43,7 @@ class ConsultationPage : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_consultation_page)
         val spinner = findViewById<Spinner>(R.id.spinner1)
+        println("333333333323")
         val values = listOf("chat", "gsm", "video", "voip")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, values)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -89,6 +94,11 @@ class ConsultationPage : AppCompatActivity() {
         val getLastConsultationButton = findViewById<Button>(R.id.button18)
         getLastConsultationButton.setOnClickListener {
             getLastConsultation()
+        }
+        val getAiButton = findViewById<Button>(R.id.button19)
+        getAiButton.setOnClickListener {
+            println("$!@#123123123")
+            getAiSupport()
         }
     }
 
@@ -250,6 +260,65 @@ class ConsultationPage : AppCompatActivity() {
 
             override fun onRequestError(error: String?) {
                 println(error)
+            }
+        })
+    }
+
+
+    private fun getAiSupport() {
+        ApiService.getTranscription("146", object : ApiCallback<Transcription> {
+            override fun onSuccess(response: Transcription) {
+              println(response.transcript)
+            }
+
+            override fun onFailure(error: String?) {
+                println(error)
+            }
+
+            override fun onRequestError(error: String?) {
+                println("2$error")
+            }
+
+        })
+        ApiService.getSoapSummary("147", object : ApiCallback<Soap> {
+            override fun onSuccess(response: Soap) {
+                println(" getSoapSummary ${response.summary.objective.laboratoryResults}")
+            }
+
+            override fun onFailure(error: String?) {
+                println("4$error")
+            }
+
+            override fun onRequestError(error: String?) {
+                println("3$error")
+            }
+
+        })
+        ApiService.getPredictSummary("148", object : ApiCallback<PredictSummary> {
+            override fun onSuccess(response: PredictSummary) {
+                println("getPredictSummary ${ response.summary }")
+            }
+
+            override fun onFailure(error: String?) {
+                println("11$error")
+            }
+
+            override fun onRequestError(error: String?) {
+               println("33$error")
+            }
+
+        })
+        ApiService.getPredictSpecialty("149", object : ApiCallback<List<PredictSpecialty>> {
+            override fun onSuccess(response: List<PredictSpecialty>) {
+                println("getPredictSpecialty ${response[0].specialtyId}")
+            }
+
+            override fun onFailure(error: String?) {
+                println("122$error")
+            }
+
+            override fun onRequestError(error: String?) {
+                println("2231$error")
             }
         })
     }
