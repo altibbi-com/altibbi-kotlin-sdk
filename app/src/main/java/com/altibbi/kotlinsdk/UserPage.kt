@@ -6,11 +6,9 @@ import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import com.altibbi.telehealth.ApiCallback
 import com.altibbi.telehealth.ApiService
-import com.altibbi.telehealth.User
-import com.altibbi.telehealth.types.BloodType
-import com.altibbi.telehealth.types.Gender
-import com.altibbi.telehealth.types.MaritalStatus
-import com.altibbi.telehealth.types.RelationType
+import com.altibbi.telehealth.model.User
+import com.altibbi.telehealth.model.BloodType
+import com.altibbi.telehealth.model.Gender
 
 
 class UserPage : AppCompatActivity() {

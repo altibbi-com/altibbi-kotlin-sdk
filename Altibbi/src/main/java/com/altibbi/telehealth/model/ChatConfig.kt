@@ -1,4 +1,4 @@
-package com.altibbi.telehealth
+package com.altibbi.telehealth.model
 
 import com.google.gson.annotations.SerializedName
 data class ChatConfig(

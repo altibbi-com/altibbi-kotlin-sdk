@@ -1,4 +1,4 @@
-package com.altibbi.telehealth
+package com.altibbi.telehealth.model
 data class Media(
     val id: String?,
     val type: String?,

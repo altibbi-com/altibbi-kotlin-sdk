@@ -1,10 +1,6 @@
-package com.altibbi.telehealth
+package com.altibbi.telehealth.model
 
 
-import com.altibbi.telehealth.types.BloodType
-import com.altibbi.telehealth.types.Gender
-import com.altibbi.telehealth.types.MaritalStatus
-import com.altibbi.telehealth.types.RelationType
 import com.google.gson.annotations.SerializedName
 data class User(
     var id: String? = null,

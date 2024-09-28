@@ -1,5 +1,13 @@
 package com.altibbi.telehealth
 
+import com.altibbi.telehealth.model.Consultation
+import com.altibbi.telehealth.model.Media
+import com.altibbi.telehealth.model.Medium
+import com.altibbi.telehealth.model.PredictSpecialty
+import com.altibbi.telehealth.model.PredictSummary
+import com.altibbi.telehealth.model.Soap
+import com.altibbi.telehealth.model.Transcription
+import com.altibbi.telehealth.model.User
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -400,6 +408,88 @@ class ApiService {
                 override fun onResponse(call: Call, response: Response) {
                     if (response.code == 200) {
                         callback.onSuccess(response = true)
+                    } else {
+                        callback.onFailure(response.body?.string())
+                    }
+                }
+            })
+        }
+
+        fun getPredictSummary(consultationId: String, callback: ApiCallback<PredictSummary>) {
+            val response: Call = callApi(
+                endpoint = "consultations/${consultationId}/predict-summary",
+                method = "GET"
+            );
+            response.enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onRequestError(e.message)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.code == 200) {
+                        val responseBody = response.body?.string()
+                        callback.onSuccess(Gson().fromJson(responseBody, PredictSummary::class.java))
+                    } else {
+                        callback.onFailure(response.body?.string())
+                    }
+                }
+            })
+        }
+        fun getTranscription(consultationId: String, callback: ApiCallback<Transcription>) {
+            val response: Call = callApi(
+                endpoint = "consultations/${consultationId}/transcription",
+                method = "GET"
+            );
+            response.enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onRequestError(e.message)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.code == 200) {
+                        val responseBody = response.body?.string()
+                        callback.onSuccess(Gson().fromJson(responseBody, Transcription::class.java))
+                    } else {
+                        callback.onFailure(response.body?.string())
+                    }
+                }
+            })
+        }
+        fun getSoapSummary(consultationId: String, callback: ApiCallback<Soap>) {
+            val response: Call = callApi(
+                endpoint = "consultations/${consultationId}/soap-summary",
+                method = "GET"
+            );
+            response.enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onRequestError(e.message)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.code == 200) {
+                        val responseBody = response.body?.string()
+                        callback.onSuccess(Gson().fromJson(responseBody, Soap::class.java))
+                    } else {
+                        callback.onFailure(response.body?.string())
+                    }
+                }
+            })
+        }
+        fun getPredictSpecialty(consultationId: String,  callback: ApiCallback<List<PredictSpecialty>>) {
+            val response: Call = callApi(
+                endpoint = "consultations/${consultationId}/predict-specialty",
+                method = "GET"
+            );
+            response.enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onRequestError(e.message)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.code == 200) {
+                        val responseBody = response.body?.string()
+                        val predictSpecialtyListType = object : TypeToken<List<PredictSpecialty>>() {}.type
+                        callback.onSuccess(Gson().fromJson(responseBody, predictSpecialtyListType))
                     } else {
                         callback.onFailure(response.body?.string())
                     }
