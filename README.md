@@ -162,8 +162,6 @@ ApiService.createConsultation(
     question = "YOUR QUESTION",
     medium = Medium.chat, // chat, voip, video, gsm
     userID = Int, 
-    mediaIDs =  null ,
-    followUpId = String,
     object : ApiCallback<Consultation> {
         override fun onSuccess(response: Consultation) {
         }
@@ -173,7 +171,10 @@ ApiService.createConsultation(
 
         override fun onRequestError(error: String?) {
         }
-    }
+    },
+    mediaIDs =  null ,
+    followUpId = String,
+    forceWhiteLabelingPartnerName = String,
 )
 ```
 

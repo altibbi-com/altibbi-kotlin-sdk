@@ -32,6 +32,7 @@ import com.altibbi.telehealth.model.Transcription
 import okhttp3.Response
 import java.io.File
 import java.io.FileOutputStream
+import java.io.FileWriter
 import java.io.IOException
 import java.io.InputStream
 
@@ -361,8 +362,6 @@ class ConsultationPage : AppCompatActivity() {
             question = textInputEditText.text.toString(),
             medium = Medium.chat,
             userID = 2,
-            mediaIDs = null,
-            followUpId = parentConsId.text.toString(),
             object : ApiCallback<Consultation> {
                 override fun onSuccess(response: Consultation) {
                     println("createConsultation response is -> $response")
@@ -380,7 +379,7 @@ class ConsultationPage : AppCompatActivity() {
                     println(error)
                 }
             }
-        )
+                    )
     }
 
     private fun deleteConsultationFun() {
@@ -419,5 +418,39 @@ class ConsultationPage : AppCompatActivity() {
                 println(error)
             }
         })
+    }
+
+
+    fun attachAsCSV(jsonData: List<Map<String, String>>, callback: ApiCallback<Media>) {
+        try {
+            val fileName = "attach-consultation-${System.currentTimeMillis()}.csv"
+            val downloadsPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val file = File(downloadsPath, fileName)
+
+            FileWriter(file).use { writer ->
+                if (jsonData.isNotEmpty()) {
+                    writer.append(jsonData.first().keys.joinToString(",")).append("\n") // Add headers
+                    jsonData.forEach { row ->
+                        writer.append(row.values.joinToString(",")).append("\n") // Add rows
+                    }
+                }
+            }
+
+            ApiService.uploadMedia(file, object : ApiCallback<Media> {
+                override fun onSuccess(response: Media) {
+                    println("uploadMedia onSuccess : $response")
+                }
+                override fun onFailure(error: String?) {
+                    println(error)
+                }
+                override fun onRequestError(error: String?) {
+                    println(error)
+                }
+            })
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+            callback.onFailure("Failed to attach CSV: ${e.message}")
+        }
     }
 }

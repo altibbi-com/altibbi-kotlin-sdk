@@ -1,5 +1,6 @@
 package com.altibbi.telehealth
 
+import com.altibbi.telehealth.model.Article
 import com.altibbi.telehealth.model.Consultation
 import com.altibbi.telehealth.model.Media
 import com.altibbi.telehealth.model.Medium
@@ -47,10 +48,12 @@ class ApiService {
                         queryParameters["per-page"] = perPage.toString()
                         queryParameters["page"] = page.toString()
                     }
-                    "$baseURL/v1/$endpoint?${queryParameters.entries.joinToString("&") { "${it.key}=${it.value}" }}"
+
+                    val baseLink = if (baseURL?.contains("rest-api") == true) baseURL else "$baseURL/v1/$endpoint"
+                    "$baseLink?${queryParameters.entries.joinToString("&") { "${it.key}=${it.value}" }}"
                 }
 
-                else -> "$baseURL/v1/$endpoint"
+                else -> (if (baseURL?.contains("rest-api") == true) baseURL else "$baseURL/v1/$endpoint").toString()
             }
             val requestBuilder = Request.Builder()
                 .url(url)
@@ -278,9 +281,11 @@ class ApiService {
             question: String,
             medium: Medium,
             userID: Int,
+            callback: ApiCallback<Consultation>,
             mediaIDs: List<String>? = null,
             followUpId: String? = null,
-            callback: ApiCallback<Consultation>
+            forceWhiteLabelingPartnerName: String? = null,
+            consultationCategoryId: Int? = null,
         ) {
             if (!Medium.values().contains(medium)) {
                 throw Exception("Invalid medium value")
@@ -296,7 +301,13 @@ class ApiService {
                 body["media_ids"] = mediaIDs
             }
             if (followUpId != null) {
-                body["followUpId"] = followUpId
+                body["parent_consultation_id"] = followUpId
+            }
+            if (forceWhiteLabelingPartnerName != null && forceWhiteLabelingPartnerName.length > 3) {
+                body["question"] = "${body["question"]} ~${forceWhiteLabelingPartnerName}~"
+            }
+            if (consultationCategoryId != null) {
+                body["consultation_category_id"] = consultationCategoryId
             }
             val response = callApi(
                 endpoint = "consultations",
@@ -496,5 +507,91 @@ class ApiService {
                 }
             })
         }
+    }
+
+    fun getMediaList(
+        page: Int? = 1,
+        perPage: Int? = 20,
+        callback: ApiCallback<List<Media>>
+    ) {
+        val response: Call = callApi(
+            endpoint = "media",
+            method = "GET",
+            page = page,
+            perPage = perPage
+        );
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 200) {
+                    val responseBody = response.body?.string()
+                    val mediaList: List<Media> = Gson().fromJson(
+                        responseBody,
+                        object : TypeToken<List<Media>>() {}.type
+                    )
+                    callback.onSuccess(mediaList)
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+
+    fun deleteMedia(mediaId: String, callback: ApiCallback<Boolean>) {
+        val response: Call = callApi("media/${mediaId}", "DELETE");
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 204) {
+                    callback.onSuccess(true)
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
+    }
+
+    fun getArticlesList(
+        subcategoryIds: List<Int>,
+        page: Int? = 1,
+        perPage: Int? = 20,
+        callback: ApiCallback<List<Article>>
+    ) {
+        val body: Map<String, Any> = mapOf(
+            "filter[sub_category_id][in]" to subcategoryIds.joinToString(","),
+            "sort" to "-article_id"
+        )
+
+        val response: Call = callApi(
+            endpoint = "https://rest-api.altibbi.com/active/v1/articles",
+            method = "GET",
+            page = page,
+            perPage = perPage,
+            body= body
+        );
+        response.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onRequestError(e.message)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code == 200) {
+                    val responseBody = response.body?.string()
+                    val articlesList: List<Article> = Gson().fromJson(
+                        responseBody,
+                        object : TypeToken<List<Article>>() {}.type
+                    )
+                    callback.onSuccess(articlesList)
+                } else {
+                    callback.onFailure(response.body?.string())
+                }
+            }
+        })
     }
 }
