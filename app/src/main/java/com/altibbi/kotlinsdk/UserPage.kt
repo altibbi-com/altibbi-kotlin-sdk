@@ -89,7 +89,10 @@ class UserPage : AppCompatActivity() {
         getAllUsersButton.setOnClickListener{
             ApiService.getUsers(object : ApiCallback<List<User>> {
                 override fun onSuccess(response: List<User>) {
-                    println("Successful response: ${response[5].id}")
+                    println("Users count: ${response.size}")
+                    if (response.isNotEmpty()) {
+                        println("First user id: ${response[0].id}")
+                    }
                 }
                 override fun onFailure(error: String?) {
                     println(error)

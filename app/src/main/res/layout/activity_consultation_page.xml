@@ -4,36 +4,46 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="24dp"
+    android:paddingTop="64dp"
     tools:context="com.altibbi.kotlinsdk.ConsultationPage">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/textInputLayout"
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/textInputEditText6"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        app:layout_constraintBottom_toTopOf="@+id/textInputEditText6"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:hint="Parent consultation ID (optional)"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintEnd_toStartOf="@+id/button13"
+        android:layout_marginEnd="8dp" />
 
-    </com.google.android.material.textfield.TextInputLayout>
+    <Button
+        android:id="@+id/button13"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Image"
+        app:layout_constraintTop_toTopOf="@+id/textInputEditText6"
+        app:layout_constraintBottom_toBottomOf="@+id/textInputEditText6"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/textInputEditText"
         android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="36dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:hint="Enter your question"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textInputEditText6"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText6" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Spinner
         android:id="@+id/spinner1"
         android:layout_width="0dp"
-        android:layout_height="49dp"
-        android:layout_marginTop="18dp"
-        android:layout_marginEnd="40dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:background="@android:drawable/btn_dropdown"
         android:spinnerMode="dropdown"
         app:layout_constraintEnd_toStartOf="@+id/button2"
@@ -44,9 +54,8 @@
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="15dp"
-        android:rotationY="4"
         android:text="Create Consultation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.932"
@@ -56,18 +65,19 @@
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/textInputEditText3"
-        android:layout_width="169dp"
-        android:layout_height="48dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:layout_marginEnd="240dp"
-        android:hint="ID"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="8dp"
+        android:hint="Consultation ID"
+        app:layout_constraintEnd_toStartOf="@+id/button5"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button2" />
 
     <Button
         android:id="@+id/button5"
-        android:layout_width="181dp"
-        android:layout_height="48dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="16dp"
         android:text="Cancel Consultation"
@@ -78,12 +88,13 @@
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/textInputEditText4"
-        android:layout_width="174dp"
-        android:layout_height="48dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:layout_marginEnd="236dp"
-        android:hint="ID"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="8dp"
+        android:hint="Consultation ID"
+        app:layout_constraintEnd_toStartOf="@+id/button7"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textInputEditText3" />
 
     <Button
@@ -91,10 +102,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="Get Consultation by id"
+        android:text="Get Consultation By ID"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.68"
-        app:layout_constraintStart_toEndOf="@+id/textInputEditText4"
         app:layout_constraintTop_toBottomOf="@+id/button5" />
 
     <Button
@@ -122,45 +131,23 @@
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/textInputEditText5"
         android:layout_width="0dp"
-        android:layout_height="49dp"
-        android:layout_marginStart="1dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="0dp"
         android:layout_marginTop="28dp"
-        android:layout_marginEnd="23dp"
-        android:hint="ID"
+        android:layout_marginEnd="8dp"
+        android:hint="Consultation ID"
         app:layout_constraintEnd_toStartOf="@+id/button9"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textInputEditText4" />
 
     <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText6"
-        android:layout_width="303dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="647dp"
-        android:hint="parentConsultationId"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.018"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textInputLayout" />
-
-    <Button
-        android:id="@+id/button13"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="32dp"
-        android:text="Image"
-        app:layout_constraintStart_toEndOf="@+id/textInputEditText6"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/textInputEditText15"
         android:layout_width="0dp"
-        android:layout_height="49dp"
-        android:layout_marginStart="2dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="0dp"
         android:layout_marginTop="20dp"
-        android:layout_marginEnd="45dp"
-        android:hint="Id"
+        android:layout_marginEnd="8dp"
+        android:hint="Consultation ID"
         app:layout_constraintEnd_toStartOf="@+id/button14"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textInputEditText5" />

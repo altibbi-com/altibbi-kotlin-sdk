@@ -39,12 +39,16 @@ import java.io.InputStream
 
 class ConsultationPage : AppCompatActivity() {
     private lateinit var galleryActivityResultLauncher: ActivityResultLauncher<Intent>
+    private val uploadedMediaIds = mutableListOf<String>()
+
+    companion object {
+        private const val REQ_READ_EXTERNAL_STORAGE = 123
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_consultation_page)
         val spinner = findViewById<Spinner>(R.id.spinner1)
-        println("333333333323")
         val values = listOf("chat", "gsm", "video", "voip")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, values)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -58,9 +62,12 @@ class ConsultationPage : AppCompatActivity() {
 
         val createConsultationButton = findViewById<Button>(R.id.button2);
 
-        val uploadImageButton = findViewById<Button>(R.id.button13);
-        uploadImageButton.setOnClickListener{
+        val uploadImageButton = findViewById<Button>(R.id.button13)
+        uploadImageButton.setOnClickListener {
             showImagePicker()
+            if (!hasReadPermission()) {
+                requestReadPermission()
+            }
         }
 
         createConsultationButton.setOnClickListener {
@@ -170,52 +177,47 @@ class ConsultationPage : AppCompatActivity() {
     }
 
 
-    private fun uriToFile(uri: Uri): File? {
-        val filePathColumn = arrayOf(MediaStore.Images.Media.DATA)
-        val cursor = contentResolver.query(uri, filePathColumn, null, null, null)
-        cursor?.use {
-            it.moveToFirst()
-            val columnIndex = it.getColumnIndex(filePathColumn[0])
-            val filePath = it.getString(columnIndex)
-            return File(filePath)
-        }
-        return null
-    }
+    fun uriToFile(context: Context, uri: Uri): File {
+        val inputStream = context.contentResolver.openInputStream(uri)
+            ?: throw IllegalArgumentException("Cannot open input stream")
 
+        val file = File(
+            context.cacheDir,
+            "upload_${System.currentTimeMillis()}.png"
+        )
+
+        FileOutputStream(file).use { output ->
+            inputStream.use { input ->
+                input.copyTo(output)
+            }
+        }
+
+        return file
+    }
     private fun handleGalleryResult(resultCode: Int, data: Intent?) {
-        val MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 123
         Log.d("ImagePicker", "handleGalleryResult called")
         if (resultCode == Activity.RESULT_OK) {
             val imageUri: Uri? = data?.data
 
             if (imageUri != null) {
-                val imageFile: File? = uriToFile(imageUri)
+                val imageFile: File = uriToFile(this, imageUri)
 
-                if (imageFile != null && imageFile.exists()) {
-                    if (ContextCompat.checkSelfPermission(
-                            this,
-                            Manifest.permission.READ_EXTERNAL_STORAGE
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ){
-
-                        ApiService.uploadMedia(imageFile, object : ApiCallback<Media> {
-                            override fun onSuccess(response: Media) {
-                                println("uploadMedia onSuccess : $response")
+                if (imageFile.exists()) {
+                    ApiService.uploadMedia(imageFile, object : ApiCallback<Media> {
+                        override fun onSuccess(response: Media) {
+                            println("uploadMedia onSuccess : $response")
+                            response.id?.let {
+                                uploadedMediaIds.add(it)
+                                Log.d("ConsultationPage", "Stored uploaded media id: $it")
                             }
-                            override fun onFailure(error: String?) {
-                                println(error)
-                            }
-                            override fun onRequestError(error: String?) {
-                                println(error)
-                            }
-                        })
-                    } else{
-                        ActivityCompat.requestPermissions(
-                            this,
-                            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                            MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE
-                        )
-                    }
+                        }
+                        override fun onFailure(error: String?) {
+                            println(error)
+                        }
+                        override fun onRequestError(error: String?) {
+                            println(error)
+                        }
+                    })
                 }
             }
         }
@@ -225,6 +227,35 @@ class ConsultationPage : AppCompatActivity() {
     private fun showImagePicker(){
         val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         galleryActivityResultLauncher?.launch(galleryIntent)
+    }
+
+    private fun hasReadPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestReadPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+            REQ_READ_EXTERNAL_STORAGE
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQ_READ_EXTERNAL_STORAGE &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            showImagePicker()
+        }
     }
 
     private fun getConsultationListFun() {
@@ -344,25 +375,26 @@ class ConsultationPage : AppCompatActivity() {
         })
     }
 
-
     private fun createConsultationFun(tbiSocket: TBISocket, context: Context) {
         val spinner = findViewById<Spinner>(R.id.spinner1)
-        val values = listOf("chat", "call", "video")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, values)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner.adapter = adapter
-
-
         val textInputEditText: EditText = findViewById(R.id.textInputEditText)
         val parentConsId: EditText = findViewById(R.id.textInputEditText6)
 
-//        mediaIDs = arrayOf("c8617c16-98ef-11ee-9bc6-9600009a97a9"),
+        val selectedMediumString = spinner.selectedItem as String
+        val selectedMedium = Medium.valueOf(selectedMediumString)
+
+        val mediaIDsForRequest: List<String>? =
+            if (uploadedMediaIds.isNotEmpty()) uploadedMediaIds.toList() else null
+
+        val followUpId: String? = parentConsId.text.toString().takeIf { it.isNotBlank() }
 
         ApiService.createConsultation(
             question = textInputEditText.text.toString(),
-            medium = Medium.chat,
-            userID = 2,
-            object : ApiCallback<Consultation> {
+            medium = selectedMedium,
+            userID = 3785,
+            mediaIDs = mediaIDsForRequest,
+            followUpId = followUpId,
+            callback = object : ApiCallback<Consultation> {
                 override fun onSuccess(response: Consultation) {
                     println("createConsultation response is -> $response")
                     if(response.status == "new"){

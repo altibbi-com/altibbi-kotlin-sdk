@@ -10,11 +10,16 @@ import com.altibbi.telehealth.model.Soap
 import com.altibbi.telehealth.model.Transcription
 import com.altibbi.telehealth.model.User
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import java.io.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import android.util.Log
+import okio.Buffer
 
 
 interface ApiCallback<T> {
@@ -24,7 +29,96 @@ interface ApiCallback<T> {
 }
 class ApiService {
     companion object {
-        private val okHttpClient = OkHttpClient()
+        private const val LOG_TAG_PREFIX = "AltibbiSDK"
+
+        private val okHttpClient: OkHttpClient by lazy {
+            OkHttpClient.Builder()
+                .addInterceptor { chain ->
+                    val request = chain.request()
+
+                    if (AltibbiService.enableDebug) {
+                        logRequest(request)
+                    }
+
+                    val response = chain.proceed(request)
+
+                    if (AltibbiService.enableDebug) {
+                        logResponse(response)
+                    }
+
+                    response
+                }
+                .build()
+        }
+
+        private fun logRequest(request: Request) {
+            val tag = "${LOG_TAG_PREFIX}-Request"
+            try {
+                val method = request.method
+                val url = request.url.toString()
+
+                val headersString = request.headers.joinToString(separator = "\n") {
+                    "${it.first}: ${it.second}"
+                }
+
+                var requestBodyString: String? = null
+                request.body?.let { body ->
+                    try {
+                        val buffer = Buffer()
+                        body.writeTo(buffer)
+                        requestBodyString = buffer.readUtf8()
+                    } catch (_: Throwable) {
+                        requestBodyString = "<unable to read request body>"
+                    }
+                }
+
+                Log.d(tag, "HTTP $method $url")
+                if (headersString.isNotEmpty()) {
+                    Log.d(tag, "Headers:\n$headersString")
+                }
+                if (!requestBodyString.isNullOrEmpty()) {
+                    Log.d(tag, "Body:\n$requestBodyString")
+                }
+
+                val curlBuilder = StringBuilder("curl -X $method")
+                curlBuilder.append(" '${url}'")
+
+                request.headers.forEach { header ->
+                    curlBuilder.append(" -H '${header.first}: ${header.second}'")
+                }
+
+                requestBodyString?.let {
+                    curlBuilder.append(" --data-raw '${it.replace("'", "\\'")}'")
+                }
+
+                Log.d("${LOG_TAG_PREFIX}-Curl", curlBuilder.toString())
+            } catch (_: Throwable) {
+            }
+        }
+
+        private fun logResponse(response: Response) {
+            val tag = "${LOG_TAG_PREFIX}-Response"
+            try {
+                val code = response.code
+                val message = response.message
+                val url = response.request.url.toString()
+
+                Log.d(tag, "HTTP ${response.request.method} $url -> $code $message")
+
+                val responseBody = response.body
+                if (responseBody != null) {
+                    val source = responseBody.source()
+                    source.request(Long.MAX_VALUE)
+                    val buffer = source.buffer.clone()
+                    val bodyString = buffer.readUtf8()
+
+                    if (bodyString.isNotEmpty()) {
+                        Log.d(tag, "Body:\n$bodyString")
+                    }
+                }
+            } catch (_: Throwable) {
+            }
+        }
         private fun callApi(
             endpoint: String,
             method: String,
@@ -73,15 +167,17 @@ class ApiService {
                 return okHttpClient.newCall(request)
             }
             requestBuilder.header("Content-Type", "application/json")
-            val formBuilder = FormBody.Builder()
-            for ((key, value) in body) {
-                formBuilder.add(key, value.toString())
-            }
-            val requestBody: RequestBody = formBuilder.build()
+            val requestBody: RequestBody? =
+                if (method != "GET") {
+                    val jsonBody = Gson().toJson(body)
+                    jsonBody.toRequestBody("application/json; charset=utf-8".toMediaType())
+                } else {
+                    null
+                }
             when (method) {
                 "GET" -> requestBuilder.get()
-                "POST" -> requestBuilder.post(requestBody)
-                "PUT" -> requestBuilder.put(requestBody)
+                "POST" -> requestBody?.let { requestBuilder.post(it) }
+                "PUT" -> requestBody?.let { requestBuilder.put(it) }
                 "DELETE" -> requestBuilder.delete()
             }
             val request: Request = requestBuilder.build()

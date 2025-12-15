@@ -4,6 +4,7 @@ class AltibbiService {
         var authToken: String? = null // Authentication token for the service
         var url: String? = null // Base URL for the service
         var lang: String = "en" // lang preference (ar or en)
+        var enableDebug: Boolean = false // controls SDK-level debug logging
         /**
          * Initializes the Altibbi service with the specified parameters.
          *
