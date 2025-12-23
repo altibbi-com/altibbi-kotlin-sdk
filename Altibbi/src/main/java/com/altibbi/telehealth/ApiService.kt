@@ -278,7 +278,8 @@ class ApiService {
             page: Int? = 1,
             perPage: Int? = 20,
             userId: Int? = null,
-            callback: ApiCallback<List<Consultation>>
+            sort: String? = null,
+            callback: ApiCallback<List<Consultation>>,
         ) {
             var body: MutableMap<String, Any> = mutableMapOf(
                 "expand" to "pusherAppKey,parentConsultation,consultations,user,media,pusherChannel," +
@@ -287,6 +288,9 @@ class ApiService {
             if (userId != null) {
                 body = body.toMutableMap()
                 body["filter[user_id]"] = userId
+            }
+            if (sort != null) {
+                body["sort"] = sort
             }
             val response: Call = callApi(
                 endpoint = "consultations",
@@ -339,7 +343,9 @@ class ApiService {
                             responseBody,
                             object : TypeToken<List<Consultation>>() {}.type
                         )
-                        callback.onSuccess(consultations[0])
+                        consultations.firstOrNull()?.let {
+                            callback.onSuccess(it)
+                        }
                     } else {
                         callback.onFailure(response.body?.string())
                     }
