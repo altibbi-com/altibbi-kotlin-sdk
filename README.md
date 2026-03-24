@@ -145,14 +145,15 @@ ApiService.updateUser(user,user.id,object : ApiCallback<User> {
 Create and manage consultations using our suite of functions:
 
 
-| APi                 | params                                                                               |
-|---------------------|--------------------------------------------------------------------------------------|
-| createConsultation  | question (required)  , medium (required) , userId (required) , mediaIds , followUpId |
-| getConsultationInfo | consultationId                                                                       |
-| getLastConsultation |                                                                                      |
-| getConsultationList | userId (required), page, perPage                                                     |
-| deleteConsultation  | consultationId                                                                       |
-| cancelConsultation  | consultationId                                                                       |
+| APi                           | params                                                                                               |
+|-------------------------------|------------------------------------------------------------------------------------------------------|
+| createConsultation            | question (required), medium (required), userId (required), mediaIds, followUpId, scheduledTo       |
+| getConsultationInfo           | consultationId                                                                                        |
+| getConsultationAvailableShifts| consultationId (required), date (required, format: yyyy-MM-dd)                                      |
+| getLastConsultation           |                                                                                                      |
+| getConsultationList           | userId (required), page, perPage                                                                     |
+| deleteConsultation            | consultationId                                                                                        |
+| cancelConsultation            | consultationId                                                                                        |
 
 
 #### Create Consultation :
@@ -174,11 +175,35 @@ ApiService.createConsultation(
     },
     mediaIDs =  null ,
     followUpId = String,
+    scheduledTo = String, // one of available shift values
     forceWhiteLabelingPartnerName = String,
 )
 ```
 
 #### Note That You Can Pass "followUpId" In Case Consultation Is FollowUpConsultation
+#### Note That "scheduledTo" Should Be One Of The Values Returned By "getConsultationAvailableShifts"
+
+#### Get Consultation Available Shifts :
+
+```kotlin
+ApiService.getConsultationAvailableShifts(
+    consultationId = "CONSULTATION_ID",
+    date = "2026-03-19", // yyyy-MM-dd
+    callback = object : ApiCallback<ConsultationAvailableShifts> {
+        override fun onSuccess(response: ConsultationAvailableShifts) {
+            val firstShift = response.shifts.firstOrNull()
+            val scheduledTo = firstShift?.shiftValue()
+            // Use this value in createConsultation(..., followUpId = ..., scheduledTo = scheduledTo)
+        }
+
+        override fun onFailure(error: String?) {
+        }
+
+        override fun onRequestError(error: String?) {
+        }
+    }
+)
+```
 
 #### Consultation List:
 

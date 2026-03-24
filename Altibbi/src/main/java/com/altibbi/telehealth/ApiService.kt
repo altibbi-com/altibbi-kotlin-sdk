@@ -2,6 +2,7 @@ package com.altibbi.telehealth
 
 import com.altibbi.telehealth.model.Article
 import com.altibbi.telehealth.model.Consultation
+import com.altibbi.telehealth.model.ConsultationAvailableShifts
 import com.altibbi.telehealth.model.Media
 import com.altibbi.telehealth.model.Medium
 import com.altibbi.telehealth.model.PredictSpecialty
@@ -379,6 +380,33 @@ class ApiService {
             })
         }
 
+        fun getConsultationAvailableShifts(
+            consultationId: String,
+            date: String,
+            callback: ApiCallback<ConsultationAvailableShifts>,
+        ) {
+            val body: MutableMap<String, Any> = mutableMapOf("date" to date)
+            val response: Call = callApi(
+                endpoint = "consultations/${consultationId}/available-shifts",
+                method = "GET",
+                body = body,
+            )
+            response.enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onRequestError(e.message)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.code == 200) {
+                        val responseBody = response.body?.string()
+                        callback.onSuccess(Gson().fromJson(responseBody, ConsultationAvailableShifts::class.java))
+                    } else {
+                        callback.onFailure(response.body?.string())
+                    }
+                }
+            })
+        }
+
         fun createConsultation(
             question: String,
             medium: Medium,
@@ -386,6 +414,7 @@ class ApiService {
             callback: ApiCallback<Consultation>,
             mediaIDs: List<String>? = null,
             followUpId: String? = null,
+            scheduledTo: String? = null,
             forceWhiteLabelingPartnerName: String? = null,
             consultationCategoryId: Int? = null,
         ) {
@@ -404,6 +433,9 @@ class ApiService {
             }
             if (followUpId != null) {
                 body["parent_consultation_id"] = followUpId
+            }
+            if (scheduledTo != null) {
+                body["scheduled_to"] = scheduledTo
             }
             if (forceWhiteLabelingPartnerName != null && forceWhiteLabelingPartnerName.length > 3) {
                 body["question"] = "${body["question"]} ~${forceWhiteLabelingPartnerName}~"

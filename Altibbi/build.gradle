@@ -6,7 +6,7 @@ plugins {
 }
 
 ext {
-    altibbiTelehealthVersion = '0.1.8'
+    altibbiTelehealthVersion = '0.1.9'
 }
 
 android {
@@ -69,10 +69,28 @@ afterEvaluate {
 publishing {
     repositories {
         maven {
-            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-            credentials {
-                username = 'test'
-                password = 'test'
+            name = "centralPortal"
+            // Option 1: Use deployment-specific upload URL (get this from Central Portal after creating a deployment)
+            // Go to https://central.sonatype.com/publishing/deployments
+            // Create a new deployment or use existing one, then copy the upload URL
+            // The URL format is: https://central.sonatype.com/api/v1/publisher/deployments/{deploymentId}/upload
+            def deploymentUrl = project.findProperty('centralDeploymentUrl')
+                ?: System.getenv('CENTRAL_DEPLOYMENT_URL')
+
+            if (deploymentUrl) {
+                url = deploymentUrl
+            } else {
+                // Fallback: Use the general API endpoint (requires deployment ID)
+                url = "https://central.sonatype.com/api/v1/publisher/deployments/upload"
+            }
+
+            credentials(HttpHeaderCredentials) {
+                name = project.findProperty('centralManualTestingAuthHeaderName') ?: 'Authorization'
+                value = project.findProperty('centralManualTestingAuthHeaderValue')
+                    ?: System.getenv('CENTRAL_TOKEN') ?: ''
+            }
+            authentication {
+                header(HttpHeaderAuthentication)
             }
         }
     }

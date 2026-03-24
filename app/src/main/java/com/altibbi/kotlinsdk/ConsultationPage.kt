@@ -11,6 +11,8 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -20,6 +22,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.altibbi.telehealth.ApiCallback
+import com.altibbi.telehealth.model.ConsultationAvailableShifts
 import com.altibbi.telehealth.model.Media
 import com.altibbi.telehealth.model.Medium
 import com.altibbi.telehealth.ApiService
@@ -39,7 +42,12 @@ import java.io.InputStream
 
 class ConsultationPage : AppCompatActivity() {
     private lateinit var galleryActivityResultLauncher: ActivityResultLauncher<Intent>
+    private lateinit var followUpShiftAdapter: ArrayAdapter<String>
     private val uploadedMediaIds = mutableListOf<String>()
+    private var selectedFollowUpConsultationId: String? = null
+    private var selectedFollowUpShift: String? = null
+    private val followUpShiftLabels = mutableListOf("No follow-up shift selected")
+    private val followUpShiftValues = mutableListOf<String?>()
 
     companion object {
         private const val REQ_READ_EXTERNAL_STORAGE = 123
@@ -53,6 +61,36 @@ class ConsultationPage : AppCompatActivity() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, values)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
+
+        val followUpShiftSpinner = findViewById<Spinner>(R.id.spinnerFollowUpShift)
+        followUpShiftAdapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_item, followUpShiftLabels)
+        followUpShiftAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        followUpShiftSpinner.adapter = followUpShiftAdapter
+        followUpShiftSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                selectedFollowUpShift = followUpShiftValues.getOrNull(position)
+                if (selectedFollowUpShift.isNullOrBlank()) {
+                    println("No follow-up shift selected")
+                } else {
+                    println("Selected follow-up shift value: $selectedFollowUpShift")
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                selectedFollowUpShift = null
+            }
+        }
+
+        val getShiftsButton = findViewById<Button>(R.id.button20)
+        getShiftsButton.setOnClickListener {
+            fetchAvailableShiftsFromInputs()
+        }
         galleryActivityResultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
@@ -161,7 +199,7 @@ class ConsultationPage : AppCompatActivity() {
                 outputFile.createNewFile()
             }
             FileOutputStream(outputFile).use { outputStream ->
-                val buffer = ByteArray(4 * 1024) // Adjust buffer size as needed
+                val buffer = ByteArray(4 * 1024)
                 var read: Int
                 while (inputStream.read(buffer).also { read = it } != -1) {
                     outputStream.write(buffer, 0, read)
@@ -281,9 +319,11 @@ class ConsultationPage : AppCompatActivity() {
     private fun getConsultation() {
         val consultationToGet: EditText = findViewById(R.id.textInputEditText4)
         val id: String = consultationToGet.text.toString()
+        val followUpDate = findViewById<EditText>(R.id.textInputEditTextFollowUpDate).text?.toString()?.trim()?.takeIf { it.isNotEmpty() } ?: java.time.LocalDate.now().toString()
         ApiService.getConsultationInfo(id, object : ApiCallback<Consultation> {
             override fun onSuccess(response: Consultation) {
                 println("get consultation info response is -> $response")
+                fetchAvailableShifts(id, followUpDate)
             }
 
             override fun onFailure(error: String?) {
@@ -292,6 +332,58 @@ class ConsultationPage : AppCompatActivity() {
 
             override fun onRequestError(error: String?) {
                 println(error)
+            }
+        })
+    }
+
+    private fun fetchAvailableShiftsFromInputs() {
+        val parentConsId = findViewById<EditText>(R.id.textInputEditText6).text
+            ?.toString()
+            ?.trim()
+            .orEmpty()
+        if (parentConsId.isBlank()) {
+            println("Please enter Parent consultation ID first")
+            return
+        }
+        val date = findViewById<EditText>(R.id.textInputEditTextFollowUpDate).text?.toString()?.trim()?.takeIf { it.isNotEmpty() } ?: java.time.LocalDate.now().toString()
+        fetchAvailableShifts(parentConsId, date)
+    }
+
+    private fun fetchAvailableShifts(consultationId: String, date: String) {
+        ApiService.getConsultationAvailableShifts(consultationId, date, object : ApiCallback<ConsultationAvailableShifts> {
+            override fun onSuccess(response: ConsultationAvailableShifts) {
+                val shifts = response.shifts
+                println("Available shifts on $date: ${shifts.size}")
+                for (shift in shifts) {
+                    println("Shift: ${shift.displayText()}, value: ${shift.shiftValue()}")
+                }
+                runOnUiThread {
+                    selectedFollowUpConsultationId = consultationId
+                    followUpShiftLabels.clear()
+                    followUpShiftValues.clear()
+                    if (shifts.isNotEmpty()) {
+                        for (shift in shifts) {
+                            followUpShiftLabels.add(shift.displayText())
+                            followUpShiftValues.add(shift.shiftValue())
+                        }
+                        selectedFollowUpShift = shifts.first().shiftValue()
+                        println("Follow-up shifts loaded for consultation #$consultationId on $date")
+                    } else {
+                        followUpShiftLabels.add("No shifts available for $date")
+                        followUpShiftValues.add(null)
+                        selectedFollowUpShift = null
+                        println("No shifts available for $date")
+                    }
+                    followUpShiftAdapter.notifyDataSetChanged()
+                }
+            }
+
+            override fun onFailure(error: String?) {
+                println("getConsultationAvailableShifts onFailure: $error")
+            }
+
+            override fun onRequestError(error: String?) {
+                println("getConsultationAvailableShifts onRequestError: $error")
             }
         })
     }
@@ -386,7 +478,9 @@ class ConsultationPage : AppCompatActivity() {
         val mediaIDsForRequest: List<String>? =
             if (uploadedMediaIds.isNotEmpty()) uploadedMediaIds.toList() else null
 
-        val followUpId: String? = parentConsId.text.toString().takeIf { it.isNotBlank() }
+        val followUpId: String? = parentConsId.text.toString().trim().takeIf { it.isNotBlank() }
+            ?: selectedFollowUpConsultationId
+        val scheduledTo: String? = if (followUpId != null) selectedFollowUpShift else null
 
         ApiService.createConsultation(
             question = textInputEditText.text.toString(),
@@ -394,12 +488,22 @@ class ConsultationPage : AppCompatActivity() {
             userID = 3785,
             mediaIDs = mediaIDsForRequest,
             followUpId = followUpId,
+            scheduledTo = scheduledTo,
             callback = object : ApiCallback<Consultation> {
                 override fun onSuccess(response: Consultation) {
                     println("createConsultation response is -> $response")
-                    if(response.status == "new"){
-                        val intent = Intent(applicationContext, WaitingRoom::class.java)
-                        startActivity(intent)
+                    runOnUiThread {
+                        selectedFollowUpConsultationId = null
+                        selectedFollowUpShift = null
+                        followUpShiftLabels.clear()
+                        followUpShiftValues.clear()
+                        followUpShiftLabels.add("No follow-up shift selected")
+                        followUpShiftValues.add(null)
+                        followUpShiftAdapter.notifyDataSetChanged()
+                        if (response.status == "new" || response.status == "scheduled") {
+                            val intent = Intent(applicationContext, WaitingRoom::class.java)
+                            startActivity(intent)
+                        }
                     }
                 }
 
@@ -411,7 +515,7 @@ class ConsultationPage : AppCompatActivity() {
                     println(error)
                 }
             }
-                    )
+        )
     }
 
     private fun deleteConsultationFun() {
@@ -461,9 +565,9 @@ class ConsultationPage : AppCompatActivity() {
 
             FileWriter(file).use { writer ->
                 if (jsonData.isNotEmpty()) {
-                    writer.append(jsonData.first().keys.joinToString(",")).append("\n") // Add headers
+                    writer.append(jsonData.first().keys.joinToString(",")).append("\n")
                     jsonData.forEach { row ->
-                        writer.append(row.values.joinToString(",")).append("\n") // Add rows
+                        writer.append(row.values.joinToString(",")).append("\n")
                     }
                 }
             }

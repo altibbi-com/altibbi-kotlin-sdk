@@ -35,7 +35,38 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:hint="Enter your question"
+        app:layout_constraintTop_toBottomOf="@+id/spinnerFollowUpShift"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/textInputEditTextFollowUpDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="8dp"
+        android:hint="Follow-up date (yyyy-MM-dd)"
         app:layout_constraintTop_toBottomOf="@+id/textInputEditText6"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/button20" />
+
+    <Button
+        android:id="@+id/button20"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Get Shifts"
+        app:layout_constraintTop_toTopOf="@+id/textInputEditTextFollowUpDate"
+        app:layout_constraintBottom_toBottomOf="@+id/textInputEditTextFollowUpDate"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Spinner
+        android:id="@+id/spinnerFollowUpShift"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@android:drawable/btn_dropdown"
+        android:spinnerMode="dropdown"
+        app:layout_constraintTop_toBottomOf="@+id/textInputEditTextFollowUpDate"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
