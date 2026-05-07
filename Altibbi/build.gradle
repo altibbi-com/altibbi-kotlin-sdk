@@ -6,7 +6,7 @@ plugins {
 }
 
 ext {
-    altibbiTelehealthVersion = '0.1.9'
+    altibbiTelehealthVersion = '0.2.0'
 }
 
 android {
