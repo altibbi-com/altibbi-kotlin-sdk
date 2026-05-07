@@ -1,174 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp"
-    android:paddingTop="56dp"
-    android:paddingBottom="16dp"
-    tools:context=".UserPage">
+    android:background="@color/background"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:context="com.altibbi.kotlinsdk.user.UserPage">
 
-    <!-- Get user by ID -->
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText2"
-        android:layout_width="0dp"
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="User ID"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button4"
-        android:layout_marginEnd="8dp" />
+        android:background="@color/background">
 
-    <Button
-        android:id="@+id/button4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Get User"
-        app:layout_constraintTop_toTopOf="@+id/textInputEditText2"
-        app:layout_constraintBottom_toBottomOf="@+id/textInputEditText2"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:title="User Management"
+            app:titleTextColor="@color/text_primary" />
+    </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Name and Email -->
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText8"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:hint="Name"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText2"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/textInputEditText7"
-        android:layout_marginEnd="8dp" />
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText7"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:hint="Email"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText2"
-        app:layout_constraintStart_toEndOf="@+id/textInputEditText8"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/design_screen_padding">
 
-    <!-- Insurance and Height -->
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText9"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Insurance ID"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText8"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/textInputEditText10"
-        android:layout_marginEnd="8dp" />
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Altibbi.AppCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText10"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Height"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText8"
-        app:layout_constraintStart_toEndOf="@+id/textInputEditText9"
-        app:layout_constraintEnd_toEndOf="parent" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-    <!-- DOB and Policy -->
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText11"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="DOB"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText9"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/textInputEditText12"
-        android:layout_marginEnd="8dp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:paddingBottom="8dp"
+                        android:text="User Management"
+                        android:textColor="@color/text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText12"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Policy number"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText9"
-        app:layout_constraintStart_toEndOf="@+id/textInputEditText11"
-        app:layout_constraintEnd_toEndOf="parent" />
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@color/light_gray" />
 
-    <!-- Internal user id and gender -->
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText13"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="User ID (for update/create)"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText11"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/textInputEditText22"
-        android:layout_marginEnd="8dp" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_create_user"
+                        style="@style/Widget.Altibbi.Button.Primary"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/design_button_height"
+                        android:layout_marginBottom="@dimen/design_button_spacing"
+                        android:text="Create User" />
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText22"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Gender (male/female)"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText11"
-        app:layout_constraintStart_toEndOf="@+id/textInputEditText13"
-        app:layout_constraintEnd_toEndOf="parent" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_update_user"
+                        style="@style/Widget.Altibbi.Button.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/design_button_height"
+                        android:layout_marginBottom="@dimen/design_button_spacing"
+                        android:text="Update User" />
 
-    <!-- Create / Update user buttons -->
-    <Button
-        android:id="@+id/button12"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Create User"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText13"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button6"
-        android:layout_marginEnd="8dp" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_user_tools"
+                        style="@style/Widget.Altibbi.Button.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/design_button_height"
+                        android:text="Get / Delete / List Users" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-    <Button
-        android:id="@+id/button6"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Update User"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText13"
-        app:layout_constraintStart_toEndOf="@+id/button12"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Delete user and get all -->
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText14"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:hint="User ID to delete"
-        app:layout_constraintTop_toBottomOf="@+id/button12"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button11"
-        android:layout_marginEnd="8dp" />
-
-    <Button
-        android:id="@+id/button11"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Delete User"
-        app:layout_constraintTop_toBottomOf="@+id/button6"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <Button
-        android:id="@+id/button10"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Get All Users"
-        app:layout_constraintTop_toBottomOf="@+id/button11"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

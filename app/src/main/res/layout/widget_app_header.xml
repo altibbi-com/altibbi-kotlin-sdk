@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- RN: AppHeader (non-avatar): marginBottom 20, title 30 bold, subtitle 16 gray -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/design_app_header_margin_bottom"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/app_header_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="@string/home_title"
+        android:textAppearance="@style/Widget.Altibbi.HomeTitle" />
+
+    <TextView
+        android:id="@+id/app_header_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/home_subtitle"
+        android:textAppearance="@style/Widget.Altibbi.HomeSubtitle" />
+</LinearLayout>

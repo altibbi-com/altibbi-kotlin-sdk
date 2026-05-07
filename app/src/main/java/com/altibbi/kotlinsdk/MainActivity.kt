@@ -1,34 +1,39 @@
 package com.altibbi.kotlinsdk
 
+import com.altibbi.kotlinsdk.R
+import com.altibbi.kotlinsdk.consultation.ConsultationPageActivity
+import com.altibbi.kotlinsdk.consultation.ConsultationListActivity
+import com.altibbi.kotlinsdk.sina.AskSinaActivity
+import com.altibbi.kotlinsdk.user.UserPageActivity
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Button
-import com.altibbi.telehealth.AltibbiService
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
 
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_main)
 
-        val initButton = findViewById<Button>(R.id.button15)
-        initButton.setOnClickListener {
-        AltibbiService.enableDebug = true
-            AltibbiService.init("", "", "en")
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+        findViewById<MaterialButton>(R.id.button_consultation).setOnClickListener {
+            startActivity(Intent(this, ConsultationPageActivity::class.java))
         }
 
-        val consultationPageButton = findViewById<Button>(R.id.button)
-        consultationPageButton.setOnClickListener {
-            val intent = Intent(this, ConsultationPage::class.java)
-            startActivity(intent)
+        findViewById<MaterialButton>(R.id.button_ask_sina).setOnClickListener {
+            startActivity(Intent(this, AskSinaActivity::class.java))
         }
 
-        val userPageButton = findViewById<Button>(R.id.button3)
-        userPageButton.setOnClickListener {
-            val intent = Intent(this, UserPage::class.java)
-            startActivity(intent)
+        findViewById<MaterialButton>(R.id.button_consultation_list).setOnClickListener {
+            startActivity(Intent(this, ConsultationListActivity::class.java))
+        }
+
+        findViewById<MaterialButton>(R.id.button_user_page).setOnClickListener {
+            startActivity(Intent(this, UserPageActivity::class.java))
         }
     }
 }

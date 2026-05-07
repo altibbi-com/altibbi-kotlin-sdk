@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#121212</color>
+    <color name="text_primary">#E8E8E8</color>
+    <color name="gray">#A0A0A0</color>
+    <color name="light_gray">#3A3A3A</color>
+    <color name="surface">#1E1E1E</color>
+    <color name="avatar_placeholder">#2C2C2C</color>
+    <color name="ask_sina_background">#101018</color>
+    <color name="consultation_list_media_section">#252528</color>
+</resources>
