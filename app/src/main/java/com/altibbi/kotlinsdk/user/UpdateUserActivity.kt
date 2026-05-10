@@ -84,6 +84,8 @@ class UpdateUserActivity : AppCompatActivity() {
         setEt(R.id.et_nationality, user.nationalityNumber)
         setEt(R.id.et_insurance, user.insuranceId)
         setEt(R.id.et_policy, user.policyNumber)
+        setEt(R.id.et_tpa_code, user.tpaCode)
+        setEt(R.id.et_payer_name, user.payerName)
 
         val rgGender = findViewById<RadioGroup>(R.id.rg_gender)
         if (user.gender == Gender.FEMALE) rgGender.check(R.id.rb_female)
@@ -100,6 +102,8 @@ class UpdateUserActivity : AppCompatActivity() {
         val insurance = et(R.id.et_insurance)
         val policy = et(R.id.et_policy)
         val nationality = et(R.id.et_nationality)
+        val tpaCode = et(R.id.et_tpa_code)
+        val payerName = et(R.id.et_payer_name)
         val userId = loadedUserId ?: return
 
         var valid = true
@@ -128,7 +132,9 @@ class UpdateUserActivity : AppCompatActivity() {
             gender = gender,
             insuranceId = insurance,
             policyNumber = policy,
-            nationalityNumber = nationality.takeIf { it.isNotBlank() }
+            nationalityNumber = nationality.takeIf { it.isNotBlank() },
+            tpaCode = tpaCode.takeIf { it.isNotBlank() },
+            payerName = payerName.takeIf { it.isNotBlank() }
         )
 
         ApiService.updateUser(user, userId, object : ApiCallback<User> {

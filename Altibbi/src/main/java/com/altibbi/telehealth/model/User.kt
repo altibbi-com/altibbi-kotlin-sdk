@@ -19,6 +19,8 @@ data class User(
     var alcoholic: String? = null,
     @SerializedName("marital_status") var maritalStatus: MaritalStatus? = null,
     @SerializedName("relation_type") var relationType: RelationType? = null,
+    @SerializedName("tpa_code") var tpaCode: String? = null,
+    @SerializedName("payer_name") var payerName: String? = null,
     @SerializedName("created_at") var createdAt: String? = null,
     @SerializedName("updated_at") var updatedAt: String? = null
 ) {
@@ -39,6 +41,8 @@ data class User(
         alcoholic = json["alcoholic"] as? String,
         maritalStatus = json["marital_status"] as? MaritalStatus,
         relationType = json["relation_type"] as? RelationType,
+        tpaCode = json["tpa_code"] as? String,
+        payerName = json["payer_name"] as? String,
         createdAt = json["created_at"] as? String,
         updatedAt = json["updated_at"] as? String
     )
@@ -61,6 +65,8 @@ data class User(
                 json["alcoholic"] as? String,
                 json["marital_status"] as? MaritalStatus,
                 json["relation_type"] as? RelationType,
+                json["tpa_code"] as? String,
+                json["payer_name"] as? String,
                 json["created_at"] as? String,
                 json["updated_at"] as? String
             )
@@ -81,7 +87,9 @@ data class User(
             "smoker" to smoker,
             "alcoholic" to alcoholic,
             "marital_status" to maritalStatus?.type,
-            "relation_type" to relationType?.type
+            "relation_type" to relationType?.type,
+            "tpa_code" to tpaCode,
+            "payer_name" to payerName
         )
         println("filtered data is -> ${
             jsonMap.filterValues { it != null }

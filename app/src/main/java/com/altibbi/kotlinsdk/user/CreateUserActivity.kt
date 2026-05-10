@@ -51,6 +51,8 @@ class CreateUserActivity : AppCompatActivity() {
         val insurance = et(R.id.et_insurance)
         val policy = et(R.id.et_policy)
         val nationality = et(R.id.et_nationality)
+        val tpaCode = et(R.id.et_tpa_code)
+        val payerName = et(R.id.et_payer_name)
 
         var valid = true
         if (name.isBlank()) { til(R.id.til_name).error = "Required"; valid = false }
@@ -77,7 +79,9 @@ class CreateUserActivity : AppCompatActivity() {
             gender = gender,
             insuranceId = insurance,
             policyNumber = policy,
-            nationalityNumber = nationality.takeIf { it.isNotBlank() }
+            nationalityNumber = nationality.takeIf { it.isNotBlank() },
+            tpaCode = tpaCode.takeIf { it.isNotBlank() },
+            payerName = payerName.takeIf { it.isNotBlank() }
         )
 
         ApiService.createUser(user, object : ApiCallback<User> {
@@ -100,7 +104,8 @@ class CreateUserActivity : AppCompatActivity() {
 
     private fun clearForm() {
         listOf(R.id.et_name, R.id.et_phone, R.id.et_email, R.id.et_dob,
-            R.id.et_insurance, R.id.et_policy, R.id.et_nationality)
+            R.id.et_insurance, R.id.et_policy, R.id.et_nationality,
+            R.id.et_tpa_code, R.id.et_payer_name)
             .forEach { findViewById<TextInputEditText>(it).setText("") }
         findViewById<RadioGroup>(R.id.rg_gender).check(R.id.rb_male)
     }
