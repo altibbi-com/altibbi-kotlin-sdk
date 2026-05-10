@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="primary">#0E0EEA</color>
+    <color name="secondary">#0920B1</color>
+    <color name="background">#F3F3F4</color>
+    <color name="text_primary">#333333</color>
+    <color name="gray">#888888</color>
+    <color name="light_gray">#E0E0E0</color>
+    <color name="white">#FFFFFF</color>
+    <color name="error">#E43F3F</color>
+    <color name="success">#51CF66</color>
     <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="avatar_placeholder">#F0F0F0</color>
+    <color name="ask_sina_background">#F8F9FE</color>
+    <color name="feature_icon_bg_1">#F3E5F5</color>
+    <color name="feature_icon_bg_2">#C9C9DF</color>
+    <color name="feature_icon_bg_3">#B8E4A8</color>
+    <color name="feature_icon_bg_4">#E8DDB8</color>
+    <color name="consultation_list_media_section">#F8F9FA</color>
+    <color name="action_delete_text">#D32F2F</color>
 </resources>

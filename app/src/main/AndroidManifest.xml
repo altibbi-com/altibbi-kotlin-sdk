@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
+        android:name=".App"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -26,20 +27,64 @@
         android:theme="@style/Theme.KotlinSDK"
         tools:targetApi="31">
         <activity
-            android:name=".WaitingRoom"
+            android:name=".chat.WaitingRoomActivity"
             android:exported="false" />
         <activity
-            android:name=".Chat"
+            android:name=".chat.ChatActivity"
             android:exported="false" />
         <activity
-            android:name=".Video"
+            android:name=".video.VideoActivity"
             android:exported="false" />
         <activity
-            android:name=".UserPage"
+            android:name=".user.UserPageActivity"
             android:exported="false" />
         <activity
-            android:name=".ConsultationPage"
+            android:name=".user.CreateUserActivity"
             android:exported="false" />
+        <activity
+            android:name=".user.UpdateUserActivity"
+            android:exported="false" />
+        <activity
+            android:name=".user.UserToolsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".consultation.ConsultationPageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".consultation.NewConsultationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".consultation.FollowUpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".consultation.DeveloperToolsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".consultation.AiSupportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".consultation.ConsultationListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".consultation.ConsultationDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".sina.AskSinaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".sina.SinaChatActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

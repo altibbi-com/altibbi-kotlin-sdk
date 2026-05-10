@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- RN AppButton / AppCard -->
+    <dimen name="design_button_corner">12dp</dimen>
+    <dimen name="design_button_height">50dp</dimen>
+    <dimen name="design_card_corner">16dp</dimen>
+    <dimen name="design_card_elevation">3dp</dimen>
+    <dimen name="design_screen_padding">20dp</dimen>
+    <dimen name="design_button_spacing">12dp</dimen>
+    <!-- AppHeader container marginBottom -->
+    <dimen name="design_app_header_margin_bottom">20dp</dimen>
+</resources>

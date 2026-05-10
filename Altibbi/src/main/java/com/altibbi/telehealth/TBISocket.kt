@@ -14,6 +14,11 @@ import java.io.IOException
 class TBISocket {
     private var pusher: Pusher? = null
     private var channel: PrivateChannel? = null
+
+    companion object {
+        private const val TAG = "TBISocket"
+    }
+
     fun init (
         channelName: String ,
         appKey : String,
@@ -34,6 +39,7 @@ class TBISocket {
         if(appKey.isEmpty()){
             throw IOException("appKey is missing or invalid.")
         }
+        AltibbiService.log(TAG,"init — channel=$channelName")
         val authEndPoint = "${url}/v1/auth/pusher?access-token=${token}"
         val options = PusherOptions();
         val channelAuthorizer = HttpChannelAuthorizer(authEndPoint);
@@ -44,50 +50,61 @@ class TBISocket {
         pusher = Pusher(appKey, options)
         pusher!!.connect(object : ConnectionEventListener {
             override fun onConnectionStateChange(change: ConnectionStateChange) {
+                AltibbiService.log(TAG,"connectionState — ${change.previousState} → ${change.currentState}")
                 connectionCallback.onConnectionStateChange(
                     previousState = change.previousState.toString() ,
                     currentState = change.currentState.toString() ,
                 )
             }
             override fun onError(message: String, code: String?, e: Exception?) {
+                AltibbiService.logError(TAG,"connectionError — code=$code message=$message", e)
                 connectionCallback.onError(message,code,e)
             }
         })
         channel = pusher!!.subscribePrivate(channelName, object :
             PrivateChannelEventListener {
             override fun onEvent(event: PusherEvent?) {
+                AltibbiService.log(TAG,"channelEvent — data=${event?.data}")
                 val json = JSONObject(event?.data.toString())
                 subscribeCallback.onEvent(json)
             }
             override fun onAuthenticationFailure(message: String?, e: Exception?) {
+                AltibbiService.logError(TAG,"channelAuthFailure — $message", e)
                 subscribeCallback.onAuthenticationFailure(message,e)
             }
             override fun onSubscriptionSucceeded(channelName: String) {
+                AltibbiService.log(TAG,"channelSubscribed — $channelName")
                 subscribeCallback.onSubscriptionSucceeded(channelName)
             }
         })
     }
     fun unsubscribe( channelName: String){
+        AltibbiService.log(TAG,"unsubscribe — $channelName")
         if(pusher != null){
             pusher!!.unsubscribe(channelName)
         }
     }
     fun disconnect(){
+        AltibbiService.log(TAG,"disconnect")
         if(pusher != null){
             pusher!!.disconnect()
         }
     }
     fun subscribe(eventName : String , subscribeCallback : TBISubscribeEventListener){
+        AltibbiService.log(TAG,"subscribe — event=$eventName")
         channel?.bind(eventName, object : PrivateChannelEventListener {
             override fun onEvent(event: PusherEvent?) {
+                AltibbiService.log(TAG,"event[$eventName] — data=${event?.data}")
                 val json = JSONObject(event?.data.toString())
                 val status = json.getString("status")
                 subscribeCallback.onEvent(json)
             }
             override fun onAuthenticationFailure(message: String?, e: Exception?) {
+                AltibbiService.logError(TAG,"event[$eventName] authFailure — $message", e)
                 subscribeCallback.onAuthenticationFailure(message,e)
             }
             override fun onSubscriptionSucceeded(channelName: String) {
+                AltibbiService.log(TAG,"event[$eventName] subscriptionSucceeded — $channelName")
                 subscribeCallback.onSubscriptionSucceeded(channelName)
             }
         })

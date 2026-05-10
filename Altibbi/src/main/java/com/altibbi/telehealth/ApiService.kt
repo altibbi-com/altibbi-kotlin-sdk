@@ -7,6 +7,10 @@ import com.altibbi.telehealth.model.Media
 import com.altibbi.telehealth.model.Medium
 import com.altibbi.telehealth.model.PredictSpecialty
 import com.altibbi.telehealth.model.PredictSummary
+import com.altibbi.telehealth.model.SinaMessage
+import com.altibbi.telehealth.model.SinaMessagesPage
+import com.altibbi.telehealth.model.SinaResponse
+import com.altibbi.telehealth.model.SinaSession
 import com.altibbi.telehealth.model.Soap
 import com.altibbi.telehealth.model.Transcription
 import com.altibbi.telehealth.model.User
@@ -635,6 +639,152 @@ class ApiService {
                         val responseBody = response.body?.string()
                         val predictSpecialtyListType = object : TypeToken<List<PredictSpecialty>>() {}.type
                         callback.onSuccess(Gson().fromJson(responseBody, predictSpecialtyListType))
+                    } else {
+                        callback.onFailure(response.body?.string())
+                    }
+                }
+            })
+        }
+
+        private fun callSinaApi(
+            endpoint: String,
+            method: String,
+            body: Map<String, Any?> = emptyMap(),
+            file: File? = null,
+            page: Int? = null,
+            perPage: Int? = null,
+        ): Call {
+            val token = AltibbiService.authToken ?: throw IOException("Token is missing or invalid.")
+            val sinaEndpoint = AltibbiService.sinaEndpoint ?: throw IOException("Sina endpoint not configured. Pass sinaModelEndPoint to AltibbiService.init.")
+            val partnerHost = AltibbiService.url ?: ""
+
+            val url = when (method) {
+                "GET" -> {
+                    val queryParams = body.entries.associate { (k, v) -> k to v.toString() }.toMutableMap()
+                    if (page != null && perPage != null) {
+                        queryParams["per-page"] = perPage.toString()
+                        queryParams["page"] = page.toString()
+                    }
+                    val qs = queryParams.entries.joinToString("&") { "${it.key}=${it.value}" }
+                    if (qs.isNotEmpty()) "$sinaEndpoint/$endpoint?$qs" else "$sinaEndpoint/$endpoint"
+                }
+                else -> "$sinaEndpoint/$endpoint"
+            }
+
+            val requestBuilder = Request.Builder()
+                .url(url)
+                .header("partner-host", partnerHost)
+                .header("partner-user-token", token)
+
+            if (file != null) {
+                val requestBody = MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("file", file.name, file.asRequestBody("multipart/form-data".toMediaTypeOrNull()))
+                    .build()
+                requestBuilder.post(requestBody)
+                return okHttpClient.newCall(requestBuilder.build())
+            }
+
+            requestBuilder.header("Content-Type", "application/json")
+            val requestBody = if (method != "GET") {
+                Gson().toJson(body).toRequestBody("application/json; charset=utf-8".toMediaType())
+            } else null
+
+            when (method) {
+                "GET" -> requestBuilder.get()
+                "POST" -> requestBody?.let { requestBuilder.post(it) }
+                "PUT" -> requestBody?.let { requestBuilder.put(it) }
+                "DELETE" -> requestBuilder.delete()
+            }
+
+            return okHttpClient.newCall(requestBuilder.build())
+        }
+
+        fun createSinaSession(callback: ApiCallback<SinaSession>) {
+            val call = callSinaApi(endpoint = "chats", method = "POST")
+            call.enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onRequestError(e.message)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.code == 200 || response.code == 201) {
+                        val responseBody = response.body?.string()
+                        callback.onSuccess(Gson().fromJson(responseBody, SinaSession::class.java))
+                    } else {
+                        callback.onFailure(response.body?.string())
+                    }
+                }
+            })
+        }
+
+        fun sendSinaMessage(
+            sessionId: String,
+            text: String,
+            mediaId: String? = null,
+            callback: ApiCallback<SinaResponse>,
+        ) {
+            val body = mutableMapOf<String, Any?>("text" to text)
+            if (mediaId != null) body["media_id"] = mediaId
+            val call = callSinaApi(endpoint = "chats/$sessionId/messages", method = "POST", body = body)
+            call.enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onRequestError(e.message)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.code == 200 || response.code == 201) {
+                        val responseBody = response.body?.string()
+                        callback.onSuccess(Gson().fromJson(responseBody, SinaResponse::class.java))
+                    } else {
+                        callback.onFailure(response.body?.string())
+                    }
+                }
+            })
+        }
+
+        fun getSinaChatMessages(
+            sessionId: String,
+            page: Int = 1,
+            perPage: Int = 20,
+            callback: ApiCallback<List<SinaMessage>>,
+        ) {
+            val body = mapOf<String, Any?>("sort" to "-id")
+            val call = callSinaApi(
+                endpoint = "chats/$sessionId/messages",
+                method = "GET",
+                body = body,
+                page = page,
+                perPage = perPage,
+            )
+            call.enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onRequestError(e.message)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.code == 200) {
+                        val responseBody = response.body?.string()
+                        val page = Gson().fromJson(responseBody, SinaMessagesPage::class.java)
+                        callback.onSuccess(page?.data ?: emptyList())
+                    } else {
+                        callback.onFailure(response.body?.string())
+                    }
+                }
+            })
+        }
+
+        fun uploadSinaMedia(file: File, callback: ApiCallback<Media>) {
+            val call = callSinaApi(endpoint = "media", method = "POST", file = file)
+            call.enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onRequestError(e.message)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.code == 200 || response.code == 201) {
+                        val responseBody = response.body?.string()
+                        callback.onSuccess(Gson().fromJson(responseBody, Media::class.java))
                     } else {
                         callback.onFailure(response.body?.string())
                     }
