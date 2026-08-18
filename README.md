@@ -16,7 +16,7 @@ project.
 Install the SDK :
 
 ```sh
-implementation("com.altibbi.telehealth:AltibbiTelehealth:0.1.3")
+implementation("com.altibbi.telehealth:AltibbiTelehealth:0.2.0")
 ```
 
 ## Initialization
@@ -322,6 +322,23 @@ ApiService.getPrescription(id, object : ApiCallback<Response> {
 ```kotlin
 ApiService.uploadMedia(imageFile, object : ApiCallback<Media> {
     override fun onSuccess(response: Media) {
+    }
+    override fun onFailure(error: String?) {
+    }
+    override fun onRequestError(error: String?) {
+    }
+})
+
+```
+
+#### Attach Media To An Existing Consultation
+
+Upload the files first with `uploadMedia`, then send the returned media ids to the consultation.
+
+```kotlin
+ApiService.uploadConsultationAttachments(consultationId, listOf(mediaId), object : ApiCallback<Boolean> {
+    override fun onSuccess(response: Boolean) {
+        // Response = True means the attachments were added to the consultation
     }
     override fun onFailure(error: String?) {
     }

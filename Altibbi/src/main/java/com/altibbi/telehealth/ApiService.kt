@@ -502,6 +502,37 @@ class ApiService {
             })
         }
 
+        fun uploadConsultationAttachments(
+            consultationId: String,
+            mediaIDs: List<String>,
+            callback: ApiCallback<Boolean>
+        ) {
+            if (mediaIDs.isEmpty()) {
+                throw Exception("mediaIDs must not be empty")
+            }
+            val body: MutableMap<String, Any> = mutableMapOf(
+                "media_ids" to mediaIDs
+            )
+            val response: Call = callApi(
+                endpoint = "consultations/${consultationId}/upload-attachments",
+                method = "POST",
+                body = body
+            )
+            response.enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onRequestError(e.message)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.code == 200) {
+                        callback.onSuccess(true)
+                    } else {
+                        callback.onFailure(response.body?.string())
+                    }
+                }
+            })
+        }
+
         fun uploadMedia(file: File, callback: ApiCallback<Media>) {
             val response: Call = callApi(endpoint = "media", method = "POST", file = file);
             response.enqueue(object : Callback {

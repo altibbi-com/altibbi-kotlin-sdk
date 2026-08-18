@@ -51,6 +51,11 @@
     <string name="waiting_tip_3">اذكر الأدوية التي تتناولها حاليًا والجرعات.</string>
     <string name="waiting_tip_4">تأكد من جودة اتصال الإنترنت قبل بدء المكالمة.</string>
     <string name="waiting_tip_5">حضّر أي تقارير طبية أو صور أشعة لمشاركتها.</string>
+    <string name="waiting_attach_media">إرفاق ملف</string>
+    <string name="waiting_attach_uploading">جارٍ الرفع…</string>
+    <string name="waiting_attach_success">تم إرفاق الملف بالاستشارة</string>
+    <string name="waiting_attach_failed">تعذّر إرفاق الملف</string>
+    <string name="waiting_attach_no_consultation">لا توجد استشارة نشطة لإرفاق الملف بها</string>
     <string name="waiting_cancel">إلغاء الاستشارة</string>
     <string name="waiting_cancel_confirm_title">إلغاء الاستشارة</string>
     <string name="waiting_cancel_confirm_msg">هل أنت متأكد من إلغاء الاستشارة؟</string>

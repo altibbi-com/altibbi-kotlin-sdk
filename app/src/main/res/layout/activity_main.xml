@@ -118,6 +118,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/action_user_management" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_sdk_setup"
+                        style="@style/Widget.Altibbi.Button.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/design_button_spacing"
+                        android:text="SDK Setup" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>

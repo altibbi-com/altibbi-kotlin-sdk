@@ -1,6 +1,13 @@
 package com.altibbi.kotlinsdk.consultation
 
 import com.altibbi.kotlinsdk.R
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -8,21 +15,39 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.widget.NestedScrollView
 import com.altibbi.telehealth.ApiCallback
 import com.altibbi.telehealth.ApiService
 import com.altibbi.telehealth.model.Consultation
+import com.altibbi.telehealth.model.Media
 import com.altibbi.telehealth.model.RecommendationData
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import java.io.File
+import java.io.FileOutputStream
 import java.util.Locale
 
 class ConsultationDetailsActivity : AppCompatActivity() {
 
+    private lateinit var galleryLauncher: ActivityResultLauncher<Intent>
+    private lateinit var photoPickerLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var cameraLauncher: ActivityResultLauncher<Uri>
+    private lateinit var documentLauncher: ActivityResultLauncher<Array<String>>
+    private var cameraImageUri: Uri? = null
+    private var consultationId: Int = -1
+
     companion object {
         const val EXTRA_CONSULTATION_ID = "consultation_id"
+        private const val REQ_READ_EXTERNAL_STORAGE = 123
+        private const val REQ_CAMERA = 126
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,11 +59,14 @@ class ConsultationDetailsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        val consultationId = intent.getIntExtra(EXTRA_CONSULTATION_ID, -1)
+        consultationId = intent.getIntExtra(EXTRA_CONSULTATION_ID, -1)
         if (consultationId == -1) { finish(); return }
 
         toolbar.title = "Consultation Details"
         toolbar.subtitle = "ID: $consultationId"
+
+        setupMediaLaunchers()
+        findViewById<MaterialButton>(R.id.btn_add_attachment).setOnClickListener { showAttachmentPicker() }
 
         loadConsultation(consultationId)
     }
@@ -78,6 +106,8 @@ class ConsultationDetailsActivity : AppCompatActivity() {
         setText(R.id.detail_created_at, data.createdAt)
         setText(R.id.detail_closed_at, null)
         setText(R.id.detail_question, data.question)
+
+        bindAttachments(data.media)
 
         data.user?.let { user ->
             findViewById<MaterialCardView>(R.id.card_user_info).visibility = View.VISIBLE
@@ -268,6 +298,160 @@ class ConsultationDetailsActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
             ).also { it.topMargin = (4 * dp).toInt() }
         })
+    }
+
+    private fun bindAttachments(media: List<Media>?) {
+        val container = findViewById<LinearLayout>(R.id.attachments_container)
+        container.removeAllViews()
+        if (media.isNullOrEmpty()) {
+            addDetailRow(container, "Attachments", "None")
+            return
+        }
+        media.forEach { m ->
+            addDetailRow(container, m.type ?: "File", m.name ?: m.id ?: "—")
+        }
+    }
+
+    private fun setupMediaLaunchers() {
+        galleryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) result.data?.data?.let { uploadAttachment(it) }
+        }
+        photoPickerLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) uploadAttachment(uri)
+        }
+        cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) cameraImageUri?.let { uploadAttachment(it) }
+        }
+        documentLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) uploadAttachment(uri)
+        }
+    }
+
+    private fun showAttachmentPicker() {
+        AlertDialog.Builder(this)
+            .setTitle("Attach file")
+            .setItems(arrayOf("Camera", "Gallery", "Document")) { _, which ->
+                when (which) {
+                    0 -> checkCameraPermissionAndOpen()
+                    1 -> openGallery()
+                    2 -> documentLauncher.launch(arrayOf("image/*", "application/pdf", "*/*"))
+                }
+            }
+            .show()
+    }
+
+    private fun checkCameraPermissionAndOpen() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            openCamera()
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), REQ_CAMERA)
+        }
+    }
+
+    private fun openCamera() {
+        val file = File(cacheDir, "camera_${System.currentTimeMillis()}.jpg")
+        val uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", file)
+        cameraImageUri = uri
+        cameraLauncher.launch(uri)
+    }
+
+    private fun openGallery() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            photoPickerLauncher.launch(arrayOf("image/*"))
+        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            galleryLauncher.launch(Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI))
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQ_READ_EXTERNAL_STORAGE)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+        when (requestCode) {
+            REQ_READ_EXTERNAL_STORAGE -> if (granted) openGallery()
+            REQ_CAMERA -> if (granted) openCamera()
+        }
+    }
+
+    private fun uploadAttachment(uri: Uri) {
+        setAttaching(true)
+        ApiService.uploadMedia(uriToFile(this, uri), object : ApiCallback<Media> {
+            override fun onSuccess(response: Media) {
+                val mediaId = response.id
+                if (mediaId == null) {
+                    runOnUiThread {
+                        setAttaching(false)
+                        toast("Upload returned no media id")
+                    }
+                    return
+                }
+                attachMediaToConsultation(mediaId)
+            }
+
+            override fun onFailure(error: String?) {
+                runOnUiThread {
+                    setAttaching(false)
+                    toast(error ?: "Failed to upload file")
+                }
+            }
+
+            override fun onRequestError(error: String?) = onFailure(error)
+        })
+    }
+
+    private fun attachMediaToConsultation(mediaId: String) {
+        ApiService.uploadConsultationAttachments(
+            consultationId.toString(),
+            listOf(mediaId),
+            object : ApiCallback<Boolean> {
+                override fun onSuccess(response: Boolean) {
+                    runOnUiThread {
+                        setAttaching(false)
+                        toast("Attachment added")
+                    }
+                    refreshAttachments()
+                }
+
+                override fun onFailure(error: String?) {
+                    runOnUiThread {
+                        setAttaching(false)
+                        toast(error ?: "Failed to attach media")
+                    }
+                }
+
+                override fun onRequestError(error: String?) = onFailure(error)
+            }
+        )
+    }
+
+    private fun refreshAttachments() {
+        ApiService.getConsultationInfo(consultationId.toString(), object : ApiCallback<Consultation> {
+            override fun onSuccess(response: Consultation) {
+                runOnUiThread { bindAttachments(response.media) }
+            }
+
+            override fun onFailure(error: String?) {}
+
+            override fun onRequestError(error: String?) = onFailure(error)
+        })
+    }
+
+    private fun setAttaching(loading: Boolean) {
+        findViewById<ProgressBar>(R.id.attachment_progress).visibility =
+            if (loading) View.VISIBLE else View.GONE
+        findViewById<MaterialButton>(R.id.btn_add_attachment).isEnabled = !loading
+    }
+
+    private fun toast(message: String) =
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+
+    private fun uriToFile(context: Context, uri: Uri): File {
+        val file = File(context.cacheDir, "upload_${System.currentTimeMillis()}.png")
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            FileOutputStream(file).use { input.copyTo(it) }
+        }
+        return file
     }
 
     private fun setText(viewId: Int, value: String?) {

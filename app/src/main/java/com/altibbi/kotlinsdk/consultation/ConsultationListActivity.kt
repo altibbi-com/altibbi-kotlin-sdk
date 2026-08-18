@@ -109,7 +109,7 @@ class ConsultationListActivity : AppCompatActivity() {
             page = 1,
             perPage = 50,
             userId = resolvedUserId,
-            sort = null,
+            sort = "-id",
             callback = object : ApiCallback<List<Consultation>> {
                 override fun onSuccess(response: List<Consultation>) {
                     runOnUiThread {

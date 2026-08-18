@@ -35,5 +35,13 @@ class MainActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.button_user_page).setOnClickListener {
             startActivity(Intent(this, UserPageActivity::class.java))
         }
+
+        findViewById<MaterialButton>(R.id.button_sdk_setup).setOnClickListener {
+            startActivity(
+                Intent(this, SetupActivity::class.java)
+                    .putExtra(SetupActivity.EXTRA_EDIT_CONFIG, true)
+            )
+            finish()
+        }
     }
 }
